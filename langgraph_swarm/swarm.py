@@ -1,11 +1,8 @@
 from typing import Callable
 
-from langgraph.graph import StateGraph, START
+from langgraph.graph import StateGraph, MessagesState, START
 from langgraph.graph.state import CompiledStateGraph
-from langgraph.prebuilt.chat_agent_executor import (
-    AgentState,
-    StateSchemaType,
-)
+from langgraph.prebuilt.chat_agent_executor import StateSchemaType
 
 from langgraph_swarm.handoff import get_handoff_destinations
 
@@ -17,7 +14,7 @@ def _make_entrypoint_router(entrypoint: str) -> Callable[[dict], dict]:
     return route_to_active_agent
 
 
-class SwarmState(AgentState):
+class SwarmState(MessagesState):
     """State schema for the multi-agent swarm."""
 
     active_agent: str
