@@ -67,4 +67,4 @@ print(turn_2)
 ```
 
 > [!IMPORTANT]
-> Adding [persistence](https://langchain-ai.github.io/langgraph/concepts/persistence/) is crucial for maintaining conversation state across multiple interactions. Without it, the swarm would "forget" which agent was last active and lose the conversation history. Make sure to always compile the swarm with a checkpointer, e.g., `workflow.compile(checkpointer=checkpointer)`
+> Adding [persistence](https://langchain-ai.github.io/langgraph/concepts/persistence/) is crucial for maintaining conversation state across multiple interactions. Without it, the swarm would "forget" which agent was last active and lose the conversation history. Make sure to always compile the swarm with a checkpointer; e.g., `workflow.compile(checkpointer=checkpointer)`
