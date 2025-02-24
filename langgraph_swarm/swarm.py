@@ -1,8 +1,7 @@
-from typing import Callable, Type, TypeVar
+from typing import Type, TypeVar
 
 from langgraph.graph import StateGraph, MessagesState, START
 from langgraph.graph.state import CompiledStateGraph
-from langgraph.utils.runnable import RunnableLike
 
 from langgraph_swarm.handoff import get_handoff_destinations
 
@@ -20,7 +19,6 @@ StateSchemaType = Type[StateSchema]
 def add_active_agent_router(
     builder: StateGraph,
     *,
-    route_from: str,
     route_to: list[str],
     default_active_agent: str,
 ) -> StateGraph:
@@ -28,7 +26,6 @@ def add_active_agent_router(
 
     Args:
         builder: The graph builder (StateGraph) to add the router to.
-        route_from: Name of the node to route from.
         route_to: A list of agent (node) names to route to.
         default_active_agent: Name of the agent to route to by default (if no agents are currently active).
 
@@ -49,7 +46,7 @@ def add_active_agent_router(
     def route_to_active_agent(state: dict):
         return state.get("active_agent", default_active_agent)
 
-    builder.add_conditional_edges(route_from, route_to_active_agent, path_map=route_to)
+    builder.add_conditional_edges(START, route_to_active_agent, path_map=route_to)
     return builder
 
 
@@ -57,7 +54,6 @@ def create_swarm(
     agents: list[CompiledStateGraph],
     *,
     default_active_agent: str,
-    start_from: str = START,
     state_schema: StateSchemaType = SwarmState,
 ) -> StateGraph:
     """Create a multi-agent swarm.
@@ -65,9 +61,6 @@ def create_swarm(
     Args:
         agents: List of agents to add to the swarm
         default_active_agent: Name of the agent to route to by default (if no agents are currently active).
-        start_from: Name of the node to route to the active agent from (defaults to start of the graph).
-            Useful if you need to add non-agent nodes to the beginning of the graph and
-            route to the active agent after those nodes.
         state_schema: State schema to use for the multi-agent graph.
 
     Returns:
@@ -79,7 +72,6 @@ def create_swarm(
     builder = StateGraph(state_schema)
     add_active_agent_router(
         builder,
-        route_from=start_from,
         route_to=[agent.name for agent in agents],
         default_active_agent=default_active_agent,
     )
