@@ -4,8 +4,7 @@ from typing import Callable
 
 from langchain_openai import ChatOpenAI
 from langchain_core.runnables import RunnableConfig
-from langchain_core.tools import tool
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.prebuilt import create_react_agent
 from langgraph_swarm import create_handoff_tool, create_swarm
 
@@ -126,7 +125,7 @@ hotel_assistant = create_react_agent(
 )
 
 # Compile and run!
-checkpointer = MemorySaver()
+checkpointer = InMemorySaver()
 builder = create_swarm(
     [flight_assistant, hotel_assistant], default_active_agent="flight_assistant"
 )

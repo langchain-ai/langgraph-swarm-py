@@ -26,7 +26,7 @@ export OPENAI_API_KEY=<your_api_key>
 ```python
 from langchain_openai import ChatOpenAI
 
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.prebuilt import create_react_agent
 from langgraph_swarm import create_handoff_tool, create_swarm
 
@@ -46,12 +46,15 @@ alice = create_react_agent(
 bob = create_react_agent(
     model,
     [create_handoff_tool(agent_name="Alice", description="Transfer to Alice, she can help with math")],
-    prompt="You are Bob, you speak like a prirate.",
+    prompt="You are Bob, you speak like a pirate.",
     name="Bob",
 )
 
-checkpointer = MemorySaver()
-app = create_swarm([alice, bob], default_active_agent="Alice").compile(checkpointer=checkpointer)
+checkpointer = InMemorySaver()
+app = create_swarm(
+    [alice, bob],
+    default_active_agent="Alice"
+).compile(checkpointer=checkpointer)
 
 config = {"configurable": {"thread_id": "1"}}
 turn_1 = app.invoke(
@@ -66,5 +69,32 @@ turn_2 = app.invoke(
 print(turn_2)
 ```
 
+## Memory
+
+You can add [short-term](https://langchain-ai.github.io/langgraph/how-tos/persistence/) and [long-term](https://langchain-ai.github.io/langgraph/how-tos/cross-thread-persistence/) [memory](https://langchain-ai.github.io/langgraph/concepts/memory/) to your swarm multi-agent system. Since `create_swarm()` returns an instance of `StateGraph` that needs to be compiled before use, you can directly pass a [checkpointer](https://langchain-ai.github.io/langgraph/reference/checkpoints/#langgraph.checkpoint.base.BaseCheckpointSaver) or a [store](https://langchain-ai.github.io/langgraph/reference/store/#langgraph.store.base.BaseStore) instance to the `.compile()` method:
+
+```python
+from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.store.memory import InMemoryStore
+
+checkpointer = InMemorySaver()
+store = InMemoryStore()
+
+model = ...
+alice = ...
+bob = ...
+
+workflow = create_swarm(
+    [alice, bob],
+    default_active_agent="Alice"
+)
+
+# Compile with checkpointer/store
+app = workflow.compile(
+    checkpointer=checkpointer,
+    store=store
+)
+```
+
 > [!IMPORTANT]
-> Adding [persistence](https://langchain-ai.github.io/langgraph/concepts/persistence/) is crucial for maintaining conversation state across multiple interactions. Without it, the swarm would "forget" which agent was last active and lose the conversation history. Make sure to always compile the swarm with a checkpointer; e.g., `workflow.compile(checkpointer=checkpointer)`
+> Adding [short-term memory](https://langchain-ai.github.io/langgraph/concepts/persistence/) is crucial for maintaining conversation state across multiple interactions. Without it, the swarm would "forget" which agent was last active and lose the conversation history. Make sure to always compile the swarm with a checkpointer; e.g., `workflow.compile(checkpointer=checkpointer)` if you plan to use it in multi-turn conversations.
