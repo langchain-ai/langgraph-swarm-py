@@ -97,4 +97,4 @@ app = workflow.compile(
 ```
 
 > [!IMPORTANT]
-> Adding [short-term memory](https://langchain-ai.github.io/langgraph/concepts/persistence/) is crucial for maintaining conversation state across multiple interactions. Without it, the swarm would "forget" which agent was last active and lose the conversation history. Make sure to always compile the swarm with a checkpointer; e.g., `workflow.compile(checkpointer=checkpointer)` if you plan to use it in multi-turn conversations.
+> Adding [short-term memory](https://langchain-ai.github.io/langgraph/concepts/persistence/) is crucial for maintaining conversation state across multiple interactions. Without it, the swarm would "forget" which agent was last active and lose the conversation history. Make sure to always compile the swarm with a checkpointer if you plan to use it in multi-turn conversations; e.g., `workflow.compile(checkpointer=checkpointer)`.
