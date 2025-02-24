@@ -24,134 +24,46 @@ export OPENAI_API_KEY=<your_api_key>
 ```
 
 ```python
-from collections import defaultdict
-import datetime
-from typing_extensions import Annotated, Literal
-
 from langchain_openai import ChatOpenAI
-from langchain_core.runnables import RunnableConfig
-from langchain_core.tools import tool
+
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
 from langgraph_swarm import create_handoff_tool, create_swarm
 
 model = ChatOpenAI(model="gpt-4o")
 
-# Mock data for tools
-RESERVATIONS = defaultdict(lambda: {"flight_info": {}, "hotel_info": {}})
+def add(a: int, b: int) -> int:
+    """Add two numbers"""
+    return a + b
 
-TOMORROW = (datetime.date.today() + datetime.timedelta(days=1)).isoformat()
-FLIGHTS = [{"departure_airport": "BOS", "arrival_airport": "JFK", "airline": "Jet Blue", "date": TOMORROW, "id": "1"}]
-HOTELS = [{"location": "New York", "name": "McKittrick Hotel", "neighborhood": "Chelsea", "id": "1"}]
-
-# Flight tools
-def search_flights(
-    departure_airport: str,
-    arrival_airport: str,
-    date: str,
-):
-    """Search flights.
-
-    Args:
-        departure_airport: 3-letter airport code for the departure airport. If unsure, use the biggest airport in the area
-        arrival_airport: 3-letter airport code for the arrival airport. If unsure, use the biggest airport in the area
-        date: YYYY-MM-DD date
-    """
-    # return all flights for simplicity
-    return FLIGHTS
-
-def book_flight(
-    flight_id: str,
-    config: RunnableConfig,
-):
-    """Book a flight."""
-    user_id = config["configurable"].get("user_id")
-    flight = [flight for flight in FLIGHTS if flight["id"] == flight_id][0]
-    RESERVATIONS[user_id]["flight_info"] = flight
-    return "Successfully booked flight"
-
-# Hotel tools
-def search_hotels(
-    location: str
-):
-    """Search hotels.
-
-    Args:
-        location: offical, legal city name (proper noun)
-    """
-    # return all hotels for simplicity
-    return HOTELS
-
-def book_hotel(
-    hotel_id: str,
-    config: RunnableConfig,
-):
-    """Book a hotel"""
-    user_id = config["configurable"].get("user_id")
-    hotel = [hotel for hotel in HOTELS if hotel["id"] == hotel_id][0]
-    RESERVATIONS[user_id]["hotel_info"] = hotel
-    return "Successfully booked hotel"
-
-# Define handoff tools
-transfer_to_hotel_assistant = create_handoff_tool(
-    agent_name="hotel_assistant",
-    description="Transfer user to the hotel-booking assistant that can search for and book hotels."
-)
-transfer_to_flight_assistant = create_handoff_tool(
-    agent_name="flight_assistant",
-    description="Transfer user to the flight-booking assistant that can search for and book flights."
+alice = create_react_agent(
+    model,
+    [add, create_handoff_tool(agent_name="Bob")],
+    prompt="You are Alice, an addition expert.",
+    name="Alice",
 )
 
-# Define agent prompt
-def make_prompt(base_system_prompt: str):
-    def prompt(state, config):
-        user_id = config["configurable"].get("user_id")
-        current_reservation = RESERVATIONS[user_id]
-        system_prompt = (
-            base_system_prompt
-            + f"\n\nUser's active reservation: {current_reservation}"
-            + f"Today is: {datetime.datetime.now()}"
-        )
-        return [{"role": "system", "content": system_prompt}] + state["messages"]
-
-    return prompt
-
-# Define agents
-flight_assistant_tools = [search_flights, book_flight, transfer_to_hotel_assistant]
-flight_assistant = create_react_agent(
-    model.bind_tools(flight_assistant_tools, parallel_tool_calls=False),
-    flight_assistant_tools,
-    prompt=make_prompt("You are a flight booking assistant"),
-    name="flight_assistant"
+bob = create_react_agent(
+    model,
+    [create_handoff_tool(agent_name="Alice", description="Transfer to Alice, she can help with math")],
+    prompt="You are Bob, you speak like a prirate.",
+    name="Bob",
 )
 
-hotel_assistant_tools = [search_hotels, book_hotel, transfer_to_flight_assistant]
-hotel_assistant = create_react_agent(
-    model.bind_tools(hotel_assistant_tools, parallel_tool_calls=False),
-    hotel_assistant_tools,
-    prompt=make_prompt("You are a hotel booking assistant"),
-    name="hotel_assistant"
-)
-
-# Compile and run!
 checkpointer = MemorySaver()
-builder = create_swarm(
-    [flight_assistant, hotel_assistant],
-    default_active_agent="flight_assistant"
-)
+app = create_swarm([alice, bob], default_active_agent="Alice").compile(checkpointer=checkpointer)
 
-# Important: compile the swarm with a checkpointer to remember
-# previous interactions and last active agent
-app = builder.compile(checkpointer=checkpointer)
-config = {"configurable": {"thread_id": "1", "user_id": "1"}}
-result = app.invoke({
-    "messages": [
-        {
-            "role": "user",
-            "content": "i am looking for a flight from boston to ny tomorrow"
-        }
-    ],
-}, config)
+config = {"configurable": {"thread_id": "1"}}
+turn_1 = app.invoke(
+    {"messages": [{"role": "user", "content": "i'd like to speak to Bob"}]},
+    config,
+)
+print(turn_1)
+turn_2 = app.invoke(
+    {"messages": [{"role": "user", "content": "what's 5 + 7?"}]},
+    config,
+)
+print(turn_2)
 ```
 
 > [!IMPORTANT]
