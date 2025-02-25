@@ -51,10 +51,11 @@ bob = create_react_agent(
 )
 
 checkpointer = InMemorySaver()
-app = create_swarm(
+workflow = create_swarm(
     [alice, bob],
     default_active_agent="Alice"
-).compile(checkpointer=checkpointer)
+)
+app = workflow.compile(checkpointer=checkpointer)
 
 config = {"configurable": {"thread_id": "1"}}
 turn_1 = app.invoke(
