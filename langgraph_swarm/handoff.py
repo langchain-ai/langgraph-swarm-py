@@ -1,12 +1,11 @@
 import re
-from typing_extensions import Annotated
 
 from langchain_core.messages import ToolMessage
-from langchain_core.tools import BaseTool, StructuredTool, InjectedToolCallId
+from langchain_core.tools import BaseTool, InjectedToolCallId, StructuredTool
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.prebuilt import ToolNode
 from langgraph.types import Command
-
+from typing_extensions import Annotated
 
 WHITESPACE_RE = re.compile(r"\s+")
 METADATA_KEY_HANDOFF_DESTINATION = "__handoff_destination"
@@ -56,9 +55,7 @@ def create_handoff_tool(*, agent_name: str, description: str | None = None) -> B
     return handoff_tool
 
 
-def get_handoff_destinations(
-    agent: CompiledStateGraph, tool_node_name: str = "tools"
-) -> list[str]:
+def get_handoff_destinations(agent: CompiledStateGraph, tool_node_name: str = "tools") -> list[str]:
     """Get a list of destinations from agent's handoff tools."""
     nodes = agent.get_graph().nodes
     if tool_node_name not in nodes:
@@ -72,6 +69,5 @@ def get_handoff_destinations(
     return [
         tool.metadata[METADATA_KEY_HANDOFF_DESTINATION]
         for tool in tools
-        if tool.metadata is not None
-        and METADATA_KEY_HANDOFF_DESTINATION in tool.metadata
+        if tool.metadata is not None and METADATA_KEY_HANDOFF_DESTINATION in tool.metadata
     ]

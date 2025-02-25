@@ -1,6 +1,6 @@
 from typing import Type, TypeVar
 
-from langgraph.graph import StateGraph, MessagesState, START
+from langgraph.graph import START, MessagesState, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
 from langgraph_swarm.handoff import get_handoff_destinations
@@ -34,9 +34,7 @@ def add_active_agent_router(
     """
     channels = builder.schemas[builder.schema]
     if "active_agent" not in channels:
-        raise ValueError(
-            "Missing required key 'active_agent' in in builder's state_schema"
-        )
+        raise ValueError("Missing required key 'active_agent' in in builder's state_schema")
 
     if default_active_agent not in route_to:
         raise ValueError(
