@@ -2,6 +2,8 @@
 
 A Python library for creating swarm-style multi-agent systems using [LangGraph](https://github.com/langchain-ai/langgraph). A swarm is a type of [multi-agent](https://langchain-ai.github.io/langgraph/concepts/multi_agent) architecture where agents dynamically hand off control to one another based on their specializations. The system remembers which agent was last active, ensuring that on subsequent interactions, the conversation resumes with that agent.
 
+![Swarm](static/img/swarm.png)
+
 ## Features
 
 - 🤖 **Multi-agent collaboration** - Enable specialized agents to work together and hand off context to each other
