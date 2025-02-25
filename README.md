@@ -78,7 +78,9 @@ You can add [short-term](https://langchain-ai.github.io/langgraph/how-tos/persis
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.store.memory import InMemoryStore
 
+# short-term memory
 checkpointer = InMemorySaver()
+# long-term memory
 store = InMemoryStore()
 
 model = ...
@@ -169,10 +171,10 @@ def create_custom_handoff_tool(*, agent_name: str, tool_name: str, tool_descript
 
 ### Customizing agent implementation
 
-By default, individual agents are expected to communicate over a single `messages` key that is shared by all agents and the overall multi-agent swarm graph. This means that **all** of the messages from **all** of the agents will be combined into a single, shared list of messages. This might not be desirable if you don't want to expose an agent's internal history of messages. To change this, you can customize the agent by doing the following:
+By default, individual agents are expected to communicate over a single `messages` key that is shared by all agents and the overall multi-agent swarm graph. This means that **all** of the messages from **all** of the agents will be combined into a single, shared list of messages. This might not be desirable if you don't want to expose an agent's internal history of messages. To change this, you can customize the agent by taking the following steps:
 
-* use custom [state schema](https://langchain-ai.github.io/langgraph/concepts/low_level#schema) with a different key for messages, for example `alice_messages`
-* write a wrapper that converts the parent graph state to the child agent state and back (see this [how-to](https://langchain-ai.github.io/langgraph/how-tos/subgraph-transform-state/) guide)
+1.  use custom [state schema](https://langchain-ai.github.io/langgraph/concepts/low_level#schema) with a different key for messages, for example `alice_messages`
+1.  write a wrapper that converts the parent graph state to the child agent state and back (see this [how-to](https://langchain-ai.github.io/langgraph/how-tos/subgraph-transform-state/) guide)
 
 ```python
 from typing_extensions import TypedDict, Annotated
@@ -210,7 +212,7 @@ def call_bob(state: SwarmState):
 Then, you can create the swarm manually in the following way:
 
 ```python
-from langgraph_swarm.swarm import add_active_agent_router
+from langgraph_swarm import add_active_agent_router
 
 workflow = (
     StateGraph(SwarmState)
