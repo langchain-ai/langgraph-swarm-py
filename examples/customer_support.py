@@ -8,6 +8,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.prebuilt import create_react_agent
 
 from langgraph_swarm import create_handoff_tool, create_swarm
+from langgraph_swarm.swarm import SwarmState
 
 model = ChatOpenAI(model="gpt-4o")
 
@@ -116,6 +117,7 @@ flight_assistant = create_react_agent(
     [search_flights, book_flight, transfer_to_hotel_assistant],
     prompt=make_prompt("You are a flight booking assistant"),
     name="flight_assistant",
+    state_schema=SwarmState,
 )
 
 hotel_assistant = create_react_agent(
@@ -123,6 +125,7 @@ hotel_assistant = create_react_agent(
     [search_hotels, book_hotel, transfer_to_flight_assistant],
     prompt=make_prompt("You are a hotel booking assistant"),
     name="hotel_assistant",
+    state_schema=SwarmState,
 )
 
 # Compile and run!

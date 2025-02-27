@@ -3,7 +3,7 @@ import re
 from langchain_core.messages import ToolMessage
 from langchain_core.tools import BaseTool, InjectedToolCallId, tool
 from langgraph.graph.state import CompiledStateGraph
-from langgraph.prebuilt import ToolNode
+from langgraph.prebuilt import InjectedState, ToolNode
 from langgraph.types import Command
 from typing_extensions import Annotated
 
@@ -16,7 +16,7 @@ def _normalize_agent_name(agent_name: str) -> str:
     return WHITESPACE_RE.sub("_", agent_name.strip()).lower()
 
 
-def create_handoff_tool(*, agent_name: str, description: str | None = None) -> BaseTool:
+def create_handoff_tool(*, agent_name: str, description: str | None = None, handoff_limit: int = 2) -> BaseTool:
     """Create a tool that can handoff control to the requested agent.
 
     Args:
@@ -27,6 +27,7 @@ def create_handoff_tool(*, agent_name: str, description: str | None = None) -> B
             nodes as well as the tool names accepted by LLM providers
             (the tool name will look like this: `transfer_to_<agent_name>`).
         description: Optional description for the handoff tool.
+        handoff_limit: Maximum number of handoffs allowed before the tool stops working. Prevents infinite loops.
     """
     name = f"transfer_to_{_normalize_agent_name(agent_name)}"
     if description is None:
@@ -34,8 +35,13 @@ def create_handoff_tool(*, agent_name: str, description: str | None = None) -> B
 
     @tool(name, description=description)
     def handoff_to_agent(
+        state: Annotated[dict, InjectedState],
         tool_call_id: Annotated[str, InjectedToolCallId],
     ):
+        handoff_counter = state.get("handoff_counter", 0) + 1
+        if handoff_counter >= handoff_limit:
+            return f"Handoff limit reached: {handoff_limit}. Cannot handoff to {agent_name}"
+
         tool_message = ToolMessage(
             content=f"Successfully transferred to {agent_name}",
             name=name,
@@ -44,7 +50,11 @@ def create_handoff_tool(*, agent_name: str, description: str | None = None) -> B
         return Command(
             goto=agent_name,
             graph=Command.PARENT,
-            update={"messages": [tool_message], "active_agent": agent_name},
+            update={
+                "messages": [tool_message],
+                "active_agent": agent_name,
+                "handoff_counter": handoff_counter
+            },
         )
 
     handoff_to_agent.metadata = {METADATA_KEY_HANDOFF_DESTINATION: agent_name}

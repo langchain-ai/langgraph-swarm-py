@@ -1,0 +1,7 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "app": "./examples/customer_support.py:app"
+  },
+  "env": ".env"
+}

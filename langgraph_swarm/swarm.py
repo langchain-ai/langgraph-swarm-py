@@ -1,15 +1,16 @@
 from typing import Type, TypeVar
 
-from langgraph.graph import START, MessagesState, StateGraph
+from langgraph.graph import START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
+from langgraph.prebuilt.chat_agent_executor import AgentState
 
 from langgraph_swarm.handoff import get_handoff_destinations
 
 
-class SwarmState(MessagesState):
+class SwarmState(AgentState):
     """State schema for the multi-agent swarm."""
-
     active_agent: str
+    handoff_counter: int
 
 
 StateSchema = TypeVar("StateSchema", bound=SwarmState)
@@ -66,6 +67,8 @@ def create_swarm(
     """
     if "active_agent" not in state_schema.__annotations__:
         raise ValueError("Missing required key 'active_agent' in state_schema")
+    if "handoff_counter" not in state_schema.__annotations__:
+        raise ValueError("Missing required key 'handoff_counter' in state_schema")
 
     builder = StateGraph(state_schema)
     add_active_agent_router(
