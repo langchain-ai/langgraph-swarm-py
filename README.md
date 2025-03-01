@@ -20,7 +20,7 @@ pip install langgraph-swarm
 ## Quickstart
 
 ```bash
-pip install langgraph-swarm langchain-openai
+pip install langgraph-swarm langgraph-prebuilt langchain-openai
 
 export OPENAI_API_KEY=<your_api_key>
 ```
@@ -28,7 +28,7 @@ export OPENAI_API_KEY=<your_api_key>
 ```python
 from langchain_openai import ChatOpenAI
 
-from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
 from langgraph_swarm import create_handoff_tool, create_swarm
 
@@ -52,7 +52,7 @@ bob = create_react_agent(
     name="Bob",
 )
 
-checkpointer = InMemorySaver()
+checkpointer = MemorySaver()
 workflow = create_swarm(
     [alice, bob],
     default_active_agent="Alice"
@@ -77,11 +77,11 @@ print(turn_2)
 You can add [short-term](https://langchain-ai.github.io/langgraph/how-tos/persistence/) and [long-term](https://langchain-ai.github.io/langgraph/how-tos/cross-thread-persistence/) [memory](https://langchain-ai.github.io/langgraph/concepts/memory/) to your swarm multi-agent system. Since `create_swarm()` returns an instance of `StateGraph` that needs to be compiled before use, you can directly pass a [checkpointer](https://langchain-ai.github.io/langgraph/reference/checkpoints/#langgraph.checkpoint.base.BaseCheckpointSaver) or a [store](https://langchain-ai.github.io/langgraph/reference/store/#langgraph.store.base.BaseStore) instance to the `.compile()` method:
 
 ```python
-from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.checkpoint.memory import MemorySaver
 from langgraph.store.memory import InMemoryStore
 
 # short-term memory
-checkpointer = InMemorySaver()
+checkpointer = MemorySaver()
 # long-term memory
 store = InMemoryStore()
 
