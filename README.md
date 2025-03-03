@@ -148,9 +148,6 @@ def create_custom_handoff_tool(*, agent_name: str, tool_name: str, tool_descript
         # you can use a different messages state key here, if your agent uses a different schema
         # e.g., "alice_messages" instead of "messages"
         last_agent_message = state["messages"][-1]
-        # if the tool schema includes task description that LLM generates,
-        # you can extract it from the last tool call argument and pass it on to the next agent
-        task_description = last_agent_message.tool_calls[0]["args"]["task_description"]
         return Command(
             goto=agent_name,
             graph=Command.PARENT,
