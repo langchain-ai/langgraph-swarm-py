@@ -270,7 +270,7 @@ wheels = [
 
 [[package]]
 name = "langgraph"
-version = "0.3.2"
+version = "0.3.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "langchain-core" },
@@ -278,9 +278,9 @@ dependencies = [
     { name = "langgraph-prebuilt" },
     { name = "langgraph-sdk" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/82/21/83cc5f941da39ba31b8ff07e5e55b3112839f0bf332d52e6b405ad365ae5/langgraph-0.3.2.tar.gz", hash = "sha256:4712c11a9355e5d15126e15a166807a1d6275d72cf74fd2303609ffc2505e7a8", size = 113460 }
+sdist = { url = "https://files.pythonhosted.org/packages/4e/fa/b1ecc95a2464bc7dbe5e67fbd21096013829119899c33236090b98c75508/langgraph-0.3.5.tar.gz", hash = "sha256:7c0d8e61aa02578b41036c9f7a599ccba2562d269f66ef76bacbba47a99a7eca", size = 114020 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/33/1c/c50719e89442094bace035e632da7be161e5389974f2b805b75fef7aab8f/langgraph-0.3.2-py3-none-any.whl", hash = "sha256:1e17f85e225bf4fc5f0f70bce89d8bc5d1536b7993e39e2e47baa1b1a17a439c", size = 130875 },
+    { url = "https://files.pythonhosted.org/packages/a4/5f/1e1d9173b5c41eff54f88d9f4ee82c38eb4928120ab6a21a68a78d1c499e/langgraph-0.3.5-py3-none-any.whl", hash = "sha256:be313ec300633c857873ea3e44aece4dd7d0b11f131d385108b359d377a85bf7", size = 131527 },
 ]
 
 [[package]]
@@ -324,7 +324,7 @@ wheels = [
 
 [[package]]
 name = "langgraph-swarm"
-version = "0.0.3"
+version = "0.0.5"
 source = { editable = "." }
 dependencies = [
     { name = "langchain-core" },
@@ -343,7 +343,7 @@ test = [
 [package.metadata]
 requires-dist = [
     { name = "langchain-core", specifier = ">=0.3.40,<0.4.0" },
-    { name = "langgraph", specifier = ">=0.3.1,<0.4.0" },
+    { name = "langgraph", specifier = ">=0.3.5,<0.4.0" },
 ]
 
 [package.metadata.requires-dev]

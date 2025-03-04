@@ -3,7 +3,7 @@ import re
 from langchain_core.messages import ToolMessage
 from langchain_core.tools import BaseTool, InjectedToolCallId, tool
 from langgraph.graph.state import CompiledStateGraph
-from langgraph.prebuilt import ToolNode
+from langgraph.prebuilt import InjectedState, ToolNode
 from langgraph.types import Command
 from typing_extensions import Annotated
 
@@ -34,6 +34,7 @@ def create_handoff_tool(*, agent_name: str, description: str | None = None) -> B
 
     @tool(name, description=description)
     def handoff_to_agent(
+        state: Annotated[dict, InjectedState],
         tool_call_id: Annotated[str, InjectedToolCallId],
     ):
         tool_message = ToolMessage(
@@ -44,7 +45,7 @@ def create_handoff_tool(*, agent_name: str, description: str | None = None) -> B
         return Command(
             goto=agent_name,
             graph=Command.PARENT,
-            update={"messages": [tool_message], "active_agent": agent_name},
+            update={"messages": state["messages"] + [tool_message], "active_agent": agent_name},
         )
 
     handoff_to_agent.metadata = {METADATA_KEY_HANDOFF_DESTINATION: agent_name}

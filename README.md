@@ -116,9 +116,6 @@ By default, the agents in the swarm are assumed to use handoff tools created wit
 * add tool call arguments for the LLM to populate, for example a task description for the next agent
 * change what data is passed to the next agent as part of the handoff: by default `create_handoff_tool` passes **full** message history (all of the messages generated in the swarm up to this point), as well as the contents of `Command.update` to the next agent
 
-> [!IMPORTANT]
-> If you want to change what messages are passed to the next agent, you **must** use a different state schema key for `messages` in your agent implementation (e.g., `alice_messages`). By default, all agent (subgraph) state updates are applied to the swarm (parent) graph state during the handoff. Since all of the agents by default are assumed to communicate over a single `messages` key, this means that the agent's messages are **automatically combined** into the parent graph's `messages`, unless an agent uses a different key for `messages`. See more on this in the [customizing agent implementation](#customizing-agent-implementation) section.
-
 Here is an example of what a custom handoff tool might look like:
 
 ```python
@@ -170,7 +167,7 @@ def create_custom_handoff_tool(*, agent_name: str, tool_name: str, tool_descript
 
 ### Customizing agent implementation
 
-By default, individual agents are expected to communicate over a single `messages` key that is shared by all agents and the overall multi-agent swarm graph. This means that **all** of the messages from **all** of the agents will be combined into a single, shared list of messages. This might not be desirable if you don't want to expose an agent's internal history of messages. To change this, you can customize the agent by taking the following steps:
+By default, individual agents are expected to communicate over a single `messages` key that is shared by all agents and the overall multi-agent swarm graph. This means that messages from **all** of the agents will be combined into a single, shared list of messages. This might not be desirable if you don't want to expose an agent's internal history of messages. To change this, you can customize the agent by taking the following steps:
 
 1.  use custom [state schema](https://langchain-ai.github.io/langgraph/concepts/low_level#schema) with a different key for messages, for example `alice_messages`
 1.  write a wrapper that converts the parent graph state to the child agent state and back (see this [how-to](https://langchain-ai.github.io/langgraph/how-tos/subgraph-transform-state/) guide)
