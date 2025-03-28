@@ -1,0 +1,56 @@
+[project]
+name = "swarm-customer-support"
+version = "0.0.1"
+description = "Simple customer support example using LangGraph Swarm."
+authors = [
+    { name = "Lance Martin" }
+]
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.9"
+dependencies = [
+    "langchain-openai>=0.3.11",
+    "langgraph>=0.3.21",
+    "langgraph-swarm>=0.0.7",
+    "langchain>=0.3.21",
+]
+
+[project.optional-dependencies]
+dev = ["mypy>=1.11.1", "ruff>=0.6.1"]
+
+[build-system]
+requires = ["setuptools>=73.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["customer_support"]
+
+[tool.setuptools.package-dir]
+"customer_support" = "src/agent"
+
+[tool.setuptools.package-data]
+"*" = ["py.typed"]
+
+[tool.ruff]
+lint.select = [
+    "E",    # pycodestyle
+    "F",    # pyflakes
+    "I",    # isort
+    "D",    # pydocstyle
+    "D401", # First line should be in imperative mood
+    "T201",
+    "UP",
+]
+lint.ignore = [
+    "UP006",
+    "UP007",
+    "UP035",
+    "D417",
+    "E501",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["D", "UP"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"

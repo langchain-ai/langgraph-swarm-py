@@ -5,6 +5,12 @@ A two-phase multi-agent system that demonstrates an effective collaborative appr
 1. **Planning Phase**: A dedicated planner agent clarifies requirements, reads documentation, and develops a structured approach
 2. **Research Phase**: A researcher agent implements the solution based on the planner's guidance
 
+## Quickstart
+
+```bash
+uvx --refresh --from "langgraph-cli[inmem]" --with-editable . --python 3.11 langgraph dev
+```
+
 ## How It Works
 
 - The system starts with the **planner agent** that:
@@ -23,8 +29,3 @@ A two-phase multi-agent system that demonstrates an effective collaborative appr
 
 This pattern demonstrates how breaking complex tasks into planning and execution phases can lead to more thorough, well-researched outcomes.
 
-## Quickstart
-
-```bash
-uvx --refresh --from "langgraph-cli[inmem]" --with-editable . --python 3.11 langgraph dev
-```
