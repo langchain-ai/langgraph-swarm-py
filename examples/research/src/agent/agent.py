@@ -1,4 +1,3 @@
-
 # Imports
 from contextlib import asynccontextmanager
 
@@ -31,11 +30,6 @@ llms_txt_urls = "LangGraph:https://langchain-ai.github.io/langgraph/llms.txt"
 async def make_graph():
     async with MultiServerMCPClient(
     {
-        "research-server": {
-            "command": "npx",
-            "args": ["@playwright/mcp"],
-            "transport": "stdio",
-            },
         "planning-server": {
             "command": "uvx",
             "args": [
@@ -66,13 +60,9 @@ async def make_graph():
         # Researcher agent
         researcher_agent = create_react_agent(model, 
                                             prompt=researcher_prompt, 
-                                            tools=client.server_name_to_tools["research-server"].append(transfer_to_planner_agent),
+                                            tools=client.server_name_to_tools["planning-server"].append(transfer_to_planner_agent),
                                             name="researcher_agent") 
 
         # Swarm
-        agent_swarm = create_swarm([planner_agent, researcher_agent], default_active_agent="planner_agent")
-
-        # app = agent_swarm.compile(config_schema=Configuration)
-        agent = agent_swarm.compile()
-        
-        yield agent
+        agent_swarm = create_swarm([planner_agent, researcher_agent], default_active_agent="planner_agent")        
+        yield agent_swarm
