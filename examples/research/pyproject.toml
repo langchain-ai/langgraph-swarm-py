@@ -1,7 +1,7 @@
 [project]
 name = "swarm-researcher"
 version = "0.0.1"
-description = "Simple multi-agent system for research."
+description = "Simple multi-agent example for planning and research."
 authors = [
     { name = "Lance Martin" }
 ]
@@ -15,6 +15,7 @@ dependencies = [
     "langchain-mcp-adapters>=0.0.5",
     "langgraph>=0.3.21",
     "langgraph-swarm>=0.0.7",
+    "langchain>=0.3.21",
 ]
 
 [project.optional-dependencies]
