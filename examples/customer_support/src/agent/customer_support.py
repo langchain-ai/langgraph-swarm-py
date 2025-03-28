@@ -32,7 +32,6 @@ HOTELS = [
     }
 ]
 
-
 # Flight tools
 def search_flights(
     departure_airport: str,

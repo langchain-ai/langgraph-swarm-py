@@ -1,6 +1,5 @@
 
 from langchain.chat_models import init_chat_model
-
 from langgraph.prebuilt import create_react_agent
 from langgraph_swarm import create_handoff_tool, create_swarm
 
@@ -9,10 +8,8 @@ from swarm_researcher.prompts import planner_prompt, researcher_prompt
 from swarm_researcher.utils import fetch_doc
 
 # LLM
-model = init_chat_model(model="claude-3-7-sonnet-latest", 
-                        model_provider="anthropic", 
-                        max_tokens=20_000, 
-                        thinking={"type": "enabled", "budget_tokens": 16_000})
+model = init_chat_model(model="gpt-4o", 
+                        model_provider="openai")
 
 # Handoff tools
 transfer_to_planner_agent = create_handoff_tool(
@@ -28,7 +25,6 @@ transfer_to_researcher_agent = create_handoff_tool(
 llms_txt = "LangGraph:https://langchain-ai.github.io/langgraph/llms.txt"
 num_urls = 3
 planner_prompt_formatted = planner_prompt.format(llms_txt=llms_txt, num_urls=num_urls)
-
 
 # Planner agent
 planner_agent = create_react_agent(model,
