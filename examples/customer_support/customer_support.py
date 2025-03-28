@@ -1,15 +1,17 @@
 import datetime
 from collections import defaultdict
-from typing import Callable
+from typing import Callable, Union
 
-from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
+from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.prebuilt import create_react_agent
 
 from langgraph_swarm import create_handoff_tool, create_swarm
 
-model = ChatOpenAI(model="gpt-4o")
+model = ChatOpenAI(model="gpt-4o", temperature=0.0)
+# model = ChatOllama(model="qwen2.5:14b-instruct", temperature=0.0)
 
 # Mock data for tools
 RESERVATIONS = defaultdict(lambda: {"flight_info": {}, "hotel_info": {}})
@@ -43,43 +45,54 @@ def search_flights(
     """Search flights.
 
     Args:
-        departure_airport: 3-letter airport code for the departure airport. If unsure, use the biggest airport in the area
-        arrival_airport: 3-letter airport code for the arrival airport. If unsure, use the biggest airport in the area
-        date: YYYY-MM-DD date
+        departure_airport (str): 3-letter airport code for the departure airport. If unsure, use the biggest airport in the area
+        arrival_airport (str): 3-letter airport code for the arrival airport. If unsure, use the biggest airport in the area
+        date (str): YYYY-MM-DD date
     """
     # return all flights for simplicity
     return FLIGHTS
 
 
 def book_flight(
-    flight_id: str,
+    flight_id: Union[str, int],
     config: RunnableConfig,
 ) -> str:
-    """Book a flight."""
+    """Book a flight.
+    
+    Args:
+        flight_id (Union[str, int]): ID of the flight to book (will be converted to string automatically if an integer is provided)
+    """
     user_id = config["configurable"].get("user_id")
-    flight = [flight for flight in FLIGHTS if flight["id"] == flight_id][0]
+    # Convert flight_id to string if it's an integer
+    flight_id_str = str(flight_id)
+    flight = [flight for flight in FLIGHTS if flight["id"] == flight_id_str][0]
     RESERVATIONS[user_id]["flight_info"] = flight
     return "Successfully booked flight"
-
 
 # Hotel tools
 def search_hotels(location: str) -> list[dict]:
     """Search hotels.
 
     Args:
-        location: offical, legal city name (proper noun)
+        location (str): legal city name (proper noun)
     """
     # return all hotels for simplicity
     return HOTELS
 
 
 def book_hotel(
-    hotel_id: str,
+    hotel_id: Union[str, int],
     config: RunnableConfig,
 ) -> str:
-    """Book a hotel"""
+    """Book a hotel
+    
+    Args:
+        hotel_id (Union[str, int]): ID of the hotel to book (will be converted to string automatically if an integer is provided)
+    """
     user_id = config["configurable"].get("user_id")
-    hotel = [hotel for hotel in HOTELS if hotel["id"] == hotel_id][0]
+    # Convert hotel_id to string if it's an integer
+    hotel_id_str = str(hotel_id)
+    hotel = [hotel for hotel in HOTELS if hotel["id"] == hotel_id_str][0]
     RESERVATIONS[user_id]["hotel_info"] = hotel
     return "Successfully booked hotel"
 
@@ -89,6 +102,7 @@ transfer_to_hotel_assistant = create_handoff_tool(
     agent_name="hotel_assistant",
     description="Transfer user to the hotel-booking assistant that can search for and book hotels.",
 )
+
 transfer_to_flight_assistant = create_handoff_tool(
     agent_name="flight_assistant",
     description="Transfer user to the flight-booking assistant that can search for and book flights.",
@@ -114,14 +128,24 @@ def make_prompt(base_system_prompt: str) -> Callable[[dict, RunnableConfig], lis
 flight_assistant = create_react_agent(
     model,
     [search_flights, book_flight, transfer_to_hotel_assistant],
-    prompt=make_prompt("You are a flight booking assistant"),
+    prompt=make_prompt("You are a flight booking assistant. You have access to 3 tools: search_flights, book_flight, and transfer_to_hotel_assistant."
+                       "use search_flights to find a flight, use book_flight to book a flight, and use transfer_to_hotel_assistant to transfer the user to the hotel-booking assistant for any hotel-related queries."
+                       "search_flights arguments: departure_airport (str), arrival_airport (str), date (str)"
+                       "book_flight arguments: flight_id (str) - IMPORTANT: flight_id must be passed as a string, not an integer"
+                       "transfer_to_hotel_assistant arguments: None"
+                       ),
     name="flight_assistant",
 )
 
 hotel_assistant = create_react_agent(
-    model,
+    model,  
     [search_hotels, book_hotel, transfer_to_flight_assistant],
-    prompt=make_prompt("You are a hotel booking assistant"),
+    prompt=make_prompt("You are a hotel booking assistant. You have access to 3 tools: search_hotels, book_hotel, and transfer_to_flight_assistant."
+                       "use search_hotels to find a hotel, use book_hotel to book a hotel, and use transfer_to_flight_assistant to transfer the user to the flight-booking assistant for any flight-related queries."
+                       "search_hotels arguments: legal city name as a proper noun (str)"
+                       "book_hotel arguments: hotel_id (str) - IMPORTANT: hotel_id must be passed as a string, not an integer"
+                       "transfer_to_flight_assistant arguments: None"
+                       ),
     name="hotel_assistant",
 )
 
