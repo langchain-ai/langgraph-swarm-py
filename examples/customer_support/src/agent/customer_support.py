@@ -4,9 +4,7 @@ from typing import Callable
 
 from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
-from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.prebuilt import create_react_agent
-
 from langgraph_swarm import create_handoff_tool, create_swarm
 
 model = ChatOpenAI(model="gpt-4o")
@@ -126,18 +124,7 @@ hotel_assistant = create_react_agent(
 )
 
 # Compile and run!
-checkpointer = InMemorySaver()
-builder = create_swarm([flight_assistant, hotel_assistant], default_active_agent="flight_assistant")
-
-# Important: compile the swarm with a checkpointer to remember
-# previous interactions and last active agent
-app = builder.compile(checkpointer=checkpointer)
-# config = {"configurable": {"thread_id": "1", "user_id": "1"}}
-# result = app.invoke({
-#     "messages": [
-#         {
-#             "role": "user",
-#             "content": "i am looking for a flight from boston to ny tomorrow"
-#         }
-#     ],
-# }, config)
+builder = create_swarm(
+    [flight_assistant, hotel_assistant], default_active_agent="flight_assistant"
+)
+app = builder.compile()
