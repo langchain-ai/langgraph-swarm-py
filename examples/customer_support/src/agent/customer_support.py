@@ -32,6 +32,7 @@ HOTELS = [
     }
 ]
 
+
 # Flight tools
 def search_flights(
     departure_airport: str,
@@ -124,5 +125,7 @@ hotel_assistant = create_react_agent(
 )
 
 # Compile and run!
-builder = create_swarm([flight_assistant, hotel_assistant], default_active_agent="flight_assistant")
+builder = create_swarm(
+    [flight_assistant, hotel_assistant], default_active_agent="flight_assistant"
+)
 app = builder.compile()
