@@ -38,12 +38,13 @@ def print_stream(stream):
 
 def fetch_doc(url: str) -> str:
     """Fetch a document from a URL and return the markdownified text.
+
     Args:
         url (str): The URL of the document to fetch.
+
     Returns:
         str: The markdownified text of the document.
     """
-
     try:
         response = httpx_client.get(url, timeout=10)
         response.raise_for_status()

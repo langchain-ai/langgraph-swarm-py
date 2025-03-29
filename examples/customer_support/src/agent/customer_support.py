@@ -5,7 +5,6 @@ from typing import Callable
 from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
-
 from langgraph_swarm import create_handoff_tool, create_swarm
 
 model = ChatOpenAI(model="gpt-4o")

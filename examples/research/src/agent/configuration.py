@@ -1,8 +1,8 @@
 import os
-from pydantic import BaseModel, Field
-from typing import Any, Optional, Literal
+from typing import Any, Optional
 
 from langchain_core.runnables import RunnableConfig
+from pydantic import BaseModel, Field
 
 
 class Configuration(BaseModel):
