@@ -1,7 +1,6 @@
-from typing_extensions import Literal, Optional, Type, TypeVar, Union, get_args, get_origin
-
 from langgraph.graph import START, MessagesState, StateGraph
 from langgraph.graph.state import CompiledStateGraph
+from typing_extensions import Literal, Optional, Type, TypeVar, Union, get_args, get_origin
 
 from langgraph_swarm.handoff import get_handoff_destinations
 
