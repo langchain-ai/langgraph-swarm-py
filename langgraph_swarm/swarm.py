@@ -1,6 +1,6 @@
 from langgraph.graph import START, MessagesState, StateGraph
 from langgraph.graph.state import CompiledStateGraph
-from typing_extensions import Literal, Optional, Type, TypeVar, Union, get_args, get_origin
+from typing_extensions import Any, Literal, Optional, Type, TypeVar, Union, get_args, get_origin
 
 from langgraph_swarm.handoff import get_handoff_destinations
 
@@ -90,6 +90,7 @@ def create_swarm(
     *,
     default_active_agent: str,
     state_schema: StateSchemaType = SwarmState,
+    config_schema: Type[Any] | None = None,
 ) -> StateGraph:
     """Create a multi-agent swarm.
 
@@ -97,6 +98,8 @@ def create_swarm(
         agents: List of agents to add to the swarm
         default_active_agent: Name of the agent to route to by default (if no agents are currently active).
         state_schema: State schema to use for the multi-agent graph.
+        config_schema: An optional schema for configuration.
+            Use this to expose configurable parameters via supervisor.config_specs.
 
     Returns:
         A multi-agent swarm StateGraph.
@@ -107,7 +110,7 @@ def create_swarm(
 
     agent_names = [agent.name for agent in agents]
     state_schema = _update_state_schema_agent_names(state_schema, agent_names)
-    builder = StateGraph(state_schema)
+    builder = StateGraph(state_schema, config_schema)
     add_active_agent_router(
         builder,
         route_to=agent_names,
