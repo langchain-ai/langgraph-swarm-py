@@ -114,7 +114,7 @@ By default, the agents in the swarm are assumed to use handoff tools created wit
 
 * change tool name and/or description
 * add tool call arguments for the LLM to populate, for example a task description for the next agent
-* change what data is passed to the next agent as part of the handoff: by default `create_handoff_tool` passes **full** message history (all of the messages generated in the swarm up to this point), as well as the contents of `Command.update` to the next agent
+* change what data is passed to the next agent as part of the handoff: by default `create_handoff_tool` passes **full** message history (all of the messages generated in the swarm up to this point), as well as a tool message indicating successful handoff.
 
 Here is an example of what a custom handoff tool might look like:
 
@@ -126,9 +126,9 @@ from langchain_core.messages import ToolMessage
 from langgraph.types import Command
 from langgraph.prebuilt import InjectedState
 
-def create_custom_handoff_tool(*, agent_name: str, tool_name: str, tool_description: str) -> BaseTool:
+def create_custom_handoff_tool(*, agent_name: str, name: str | None, description: str | None) -> BaseTool:
 
-    @tool(name=tool_name, description=tool_description)
+    @tool(name, description=description)
     def handoff_to_agent(
         # you can add additional tool call arguments for the LLM to populate
         # for example, you can ask the LLM to populate a task description for the next agent
@@ -139,18 +139,18 @@ def create_custom_handoff_tool(*, agent_name: str, tool_name: str, tool_descript
     ):
         tool_message = ToolMessage(
             content=f"Successfully transferred to {agent_name}",
-            name=tool_name,
+            name=name,
             tool_call_id=tool_call_id,
         )
         # you can use a different messages state key here, if your agent uses a different schema
         # e.g., "alice_messages" instead of "messages"
-        last_agent_message = state["messages"][-1]
+        messages = state["messages"]
         return Command(
             goto=agent_name,
             graph=Command.PARENT,
             # NOTE: this is a state update that will be applied to the swarm multi-agent graph (i.e., the PARENT graph)
             update={
-                "messages": [last_agent_message, tool_message],
+                "messages": messages + [tool_message],
                 "active_agent": agent_name,
                 # optionally pass the task description to the next agent
                 "task_description": task_description,
