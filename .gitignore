@@ -37,3 +37,5 @@ MANIFEST
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+.langgraph_api
