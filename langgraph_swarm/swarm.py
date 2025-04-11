@@ -1,5 +1,5 @@
 from langgraph.graph import START, MessagesState, StateGraph
-from langgraph.graph.state import CompiledStateGraph
+from langgraph.pregel import Pregel
 from typing_extensions import Any, Literal, Optional, Type, TypeVar, Union, get_args, get_origin
 
 from langgraph_swarm.handoff import get_handoff_destinations
@@ -86,7 +86,7 @@ def add_active_agent_router(
 
 
 def create_swarm(
-    agents: list[CompiledStateGraph],
+    agents: list[Pregel],
     *,
     default_active_agent: str,
     state_schema: StateSchemaType = SwarmState,

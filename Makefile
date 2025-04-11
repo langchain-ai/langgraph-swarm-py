@@ -22,8 +22,8 @@ test_watch:
 ######################
 
 # Define a variable for Python and notebook files.
-lint format: PYTHON_FILES=.
-lint_diff format_diff: PYTHON_FILES=$(shell git diff --relative=. --name-only --diff-filter=d master | grep -E '\.py$$|\.ipynb$$')
+lint format: PYTHON_FILES=langgraph_swarm/ tests/
+lint_diff format_diff: PYTHON_FILES=$(shell git diff --relative=langgraph_swarm/ tests/ --name-only --diff-filter=d master | grep -E '\.py$$|\.ipynb$$')
 
 lint lint_diff:
 	[ "$(PYTHON_FILES)" = "" ] ||	uv run ruff format $(PYTHON_FILES) --diff
