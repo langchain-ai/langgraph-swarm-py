@@ -99,7 +99,7 @@ def create_swarm(
         default_active_agent: Name of the agent to route to by default (if no agents are currently active).
         state_schema: State schema to use for the multi-agent graph.
         config_schema: An optional schema for configuration.
-            Use this to expose configurable parameters via supervisor.config_specs.
+            Use this to expose configurable parameters via `swarm.config_specs`.
 
     Returns:
         A multi-agent swarm StateGraph.
