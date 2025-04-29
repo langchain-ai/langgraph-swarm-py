@@ -68,6 +68,59 @@ def add_active_agent_router(
 
     Returns:
         StateGraph with the router added.
+
+    Example:
+
+    ```python
+    from langgraph.checkpoint.memory import InMemorySaver
+    from langgraph.prebuilt import create_react_agent
+    from langgraph.graph import StateGraph
+    from langgraph_swarm import SwarmState, create_handoff_tool, add_active_agent_router
+
+    def add(a: int, b: int) -> int:
+        '''Add two numbers'''
+        return a + b
+
+    alice = create_react_agent(
+        "openai:gpt-4o",
+        [add, create_handoff_tool(agent_name="Bob")],
+        prompt="You are Alice, an addition expert.",
+        name="Alice",
+    )
+
+    bob = create_react_agent(
+        "openai:gpt-4o",
+        [create_handoff_tool(agent_name="Alice", description="Transfer to Alice, she can help with math")],
+        prompt="You are Bob, you speak like a pirate.",
+        name="Bob",
+    )
+
+    checkpointer = InMemorySaver()
+    workflow = (
+        StateGraph(SwarmState)
+        .add_node(alice, destinations=("Bob",))
+        .add_node(bob, destinations=("Alice",))
+    )
+    # this is the router that enables us to keep track of the last active agent
+    workflow = add_active_agent_router(
+        builder=workflow,
+        route_to=["Alice", "Bob"],
+        default_active_agent="Alice",
+    )
+
+    # compile the workflow
+    app = workflow.compile(checkpointer=checkpointer)
+
+    config = {"configurable": {"thread_id": "1"}}
+    turn_1 = app.invoke(
+        {"messages": [{"role": "user", "content": "i'd like to speak to Bob"}]},
+        config,
+    )
+    turn_2 = app.invoke(
+        {"messages": [{"role": "user", "content": "what's 5 + 7?"}]},
+        config,
+    )
+    ```
     """
     channels = builder.schemas[builder.schema]
     if "active_agent" not in channels:
