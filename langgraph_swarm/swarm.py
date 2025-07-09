@@ -1,4 +1,4 @@
-from typing import Literal, Optional, Union, get_args, get_origin
+from typing import Literal, Optional, Union, cast, get_args, get_origin
 
 from langgraph.graph import START, MessagesState, StateGraph
 from langgraph.pregel import Pregel
@@ -30,7 +30,8 @@ def _update_state_schema_agent_names(
     # Check if the annotation is str or Optional[str]
     is_str_type = active_agent_annotation is str
     is_optional_str = (
-        get_origin(active_agent_annotation) is Union and get_args(active_agent_annotation)[0] is str
+        get_origin(active_agent_annotation) is Union
+        and get_args(active_agent_annotation)[0] is str
     )
 
     # We only update if the 'active_agent' is a str or Optional[str]
@@ -48,7 +49,7 @@ def _update_state_schema_agent_names(
 
     # If it was Optional[str], make it Optional[Literal[...]]
     if is_optional_str:
-        updated_schema.__annotations__["active_agent"] = Optional[literal_type]
+        updated_schema.__annotations__["active_agent"] = Optional[literal_type]  # noqa: UP045
     else:
         updated_schema.__annotations__["active_agent"] = literal_type
 
@@ -135,8 +136,8 @@ def add_active_agent_router(
             msg,
         )
 
-    def route_to_active_agent(state: dict):
-        return state.get("active_agent", default_active_agent)
+    def route_to_active_agent(state: dict) -> str:
+        return cast("str", state.get("active_agent", default_active_agent))
 
     builder.add_conditional_edges(START, route_to_active_agent, path_map=route_to)
     return builder
@@ -223,8 +224,13 @@ def create_swarm(
     for agent in agents:
         builder.add_node(
             agent.name,
-            agent,
-            destinations=tuple(get_handoff_destinations(agent)),
+            # We need to update the type signatures in add_node to match
+            # the fact that more flexible Pregel objects are allowed.
+            agent,  # type: ignore[arg-type]
+            destinations=tuple(
+                # Need to update implementation to support Pregel objects
+                get_handoff_destinations(agent)  # type: ignore[arg-type]
+            ),
         )
 
     return builder

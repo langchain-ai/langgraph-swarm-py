@@ -1,11 +1,18 @@
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, Any
+
 from langchain_core.callbacks.manager import CallbackManagerForLLMRun
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage
 from langchain_core.outputs import ChatGeneration, ChatResult
+from langchain_core.tools import BaseTool
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
 
 from langgraph_swarm import create_handoff_tool, create_swarm
+
+if TYPE_CHECKING:
+    from langchain_core.runnables.config import RunnableConfig
 
 
 class FakeChatModel(BaseChatModel):
@@ -21,13 +28,19 @@ class FakeChatModel(BaseChatModel):
         messages: list[BaseMessage],
         stop: list[str] | None = None,
         run_manager: CallbackManagerForLLMRun | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> ChatResult:
         generation = ChatGeneration(message=self.responses[self.idx])
         self.idx += 1
         return ChatResult(generations=[generation])
 
-    def bind_tools(self, tools: list[any]) -> "FakeChatModel":
+    def bind_tools(
+        self,
+        tools: Sequence[dict[str, Any] | type | Callable[..., Any] | BaseTool],
+        *,
+        tool_choice: str | None = None,
+        **kwargs: Any,
+    ) -> "FakeChatModel":
         return self
 
 
@@ -80,7 +93,7 @@ def test_basic_swarm() -> None:
         ),
     ]
 
-    model = FakeChatModel(responses=recorded_messages)
+    model = FakeChatModel(responses=recorded_messages)  # type: ignore[arg-type]
 
     def add(a: int, b: int) -> int:
         """Add two numbers."""
@@ -109,9 +122,11 @@ def test_basic_swarm() -> None:
     workflow = create_swarm([alice, bob], default_active_agent="Alice")
     app = workflow.compile(checkpointer=checkpointer)
 
-    config = {"configurable": {"thread_id": "1"}}
+    config: RunnableConfig = {"configurable": {"thread_id": "1"}}
     turn_1 = app.invoke(
-        {"messages": [{"role": "user", "content": "i'd like to speak to Bob"}]},
+        {  # type: ignore[arg-type]
+            "messages": [{"role": "user", "content": "i'd like to speak to Bob"}]
+        },
         config,
     )
 
@@ -122,7 +137,9 @@ def test_basic_swarm() -> None:
     assert turn_1["active_agent"] == "Bob"
 
     turn_2 = app.invoke(
-        {"messages": [{"role": "user", "content": "what's 5 + 7?"}]},
+        {  # type: ignore[arg-type]
+            "messages": [{"role": "user", "content": "what's 5 + 7?"}]
+        },
         config,
     )
 
