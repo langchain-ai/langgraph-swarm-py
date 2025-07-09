@@ -227,7 +227,10 @@ def create_swarm(
             # We need to update the type signatures in add_node to match
             # the fact that more flexible Pregel objects are allowed.
             agent,  # type: ignore[arg-type]
-            destinations=tuple(get_handoff_destinations(agent)),
+            destinations=tuple(
+                # Need to update implementation to support Pregel objects
+                get_handoff_destinations(agent)  # type: ignore[arg-type]
+            ),
         )
 
     return builder

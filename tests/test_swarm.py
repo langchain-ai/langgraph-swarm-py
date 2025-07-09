@@ -124,7 +124,9 @@ def test_basic_swarm() -> None:
 
     config: RunnableConfig = {"configurable": {"thread_id": "1"}}
     turn_1 = app.invoke(
-        {"messages": [{"role": "user", "content": "i'd like to speak to Bob"}]},
+        {  # type: ignore[arg-type]
+            "messages": [{"role": "user", "content": "i'd like to speak to Bob"}]
+        },
         config,
     )
 
@@ -135,7 +137,9 @@ def test_basic_swarm() -> None:
     assert turn_1["active_agent"] == "Bob"
 
     turn_2 = app.invoke(
-        {"messages": [{"role": "user", "content": "what's 5 + 7?"}]},
+        {  # type: ignore[arg-type]
+            "messages": [{"role": "user", "content": "what's 5 + 7?"}]
+        },
         config,
     )
 
