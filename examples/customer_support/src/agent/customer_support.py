@@ -75,7 +75,7 @@ def book_hotel(
     hotel_id: str,
     config: RunnableConfig,
 ) -> str:
-    """Book a hotel"""
+    """Book a hotel."""
     user_id = config["configurable"].get("user_id")
     hotel = [hotel for hotel in HOTELS if hotel["id"] == hotel_id][0]
     RESERVATIONS[user_id]["hotel_info"] = hotel

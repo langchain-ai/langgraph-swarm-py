@@ -125,11 +125,13 @@ def add_active_agent_router(
     """
     channels = builder.schemas[builder.schema]
     if "active_agent" not in channels:
-        raise ValueError("Missing required key 'active_agent' in in builder's state_schema")
+        msg = "Missing required key 'active_agent' in in builder's state_schema"
+        raise ValueError(msg)
 
     if default_active_agent not in route_to:
+        msg = f"Default active agent '{default_active_agent}' not found in routes {route_to}"
         raise ValueError(
-            f"Default active agent '{default_active_agent}' not found in routes {route_to}",
+            msg,
         )
 
     def route_to_active_agent(state: dict):
@@ -206,7 +208,8 @@ def create_swarm(
     """
     active_agent_annotation = state_schema.__annotations__.get("active_agent")
     if active_agent_annotation is None:
-        raise ValueError("Missing required key 'active_agent' in state_schema")
+        msg = "Missing required key 'active_agent' in state_schema"
+        raise ValueError(msg)
 
     agent_names = [agent.name for agent in agents]
     state_schema = _update_state_schema_agent_names(state_schema, agent_names)
