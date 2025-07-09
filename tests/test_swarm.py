@@ -1,7 +1,10 @@
+from typing import Any, Callable, Sequence
 from langchain_core.callbacks.manager import CallbackManagerForLLMRun
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage
 from langchain_core.outputs import ChatGeneration, ChatResult
+from langchain_core.tools import BaseTool
+from langchain_core.runnables.config import RunnableConfig
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
 
@@ -21,13 +24,13 @@ class FakeChatModel(BaseChatModel):
         messages: list[BaseMessage],
         stop: list[str] | None = None,
         run_manager: CallbackManagerForLLMRun | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> ChatResult:
         generation = ChatGeneration(message=self.responses[self.idx])
         self.idx += 1
         return ChatResult(generations=[generation])
 
-    def bind_tools(self, tools: list[any]) -> "FakeChatModel":
+    def bind_tools(self, tools: Sequence[dict[str, Any] | type | Callable[..., Any] | BaseTool], *, tool_choice: str | None = None, **kwargs: Any) -> "FakeChatModel":
         return self
 
 
@@ -80,7 +83,7 @@ def test_basic_swarm() -> None:
         ),
     ]
 
-    model = FakeChatModel(responses=recorded_messages)
+    model = FakeChatModel(responses=recorded_messages)  # type: ignore[arg-type]
 
     def add(a: int, b: int) -> int:
         """Add two numbers."""
@@ -109,7 +112,7 @@ def test_basic_swarm() -> None:
     workflow = create_swarm([alice, bob], default_active_agent="Alice")
     app = workflow.compile(checkpointer=checkpointer)
 
-    config = {"configurable": {"thread_id": "1"}}
+    config: RunnableConfig = {"configurable": {"thread_id": "1"}}
     turn_1 = app.invoke(
         {"messages": [{"role": "user", "content": "i'd like to speak to Bob"}]},
         config,
