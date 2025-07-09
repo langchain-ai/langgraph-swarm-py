@@ -49,7 +49,7 @@ def _update_state_schema_agent_names(
 
     # If it was Optional[str], make it Optional[Literal[...]]
     if is_optional_str:
-        updated_schema.__annotations__["active_agent"] = Optional[literal_type]
+        updated_schema.__annotations__["active_agent"] = Optional[literal_type]  # noqa: UP045
     else:
         updated_schema.__annotations__["active_agent"] = literal_type
 
@@ -137,7 +137,7 @@ def add_active_agent_router(
         )
 
     def route_to_active_agent(state: dict) -> str:
-        return cast(str, state.get("active_agent", default_active_agent))
+        return cast("str", state.get("active_agent", default_active_agent))
 
     builder.add_conditional_edges(START, route_to_active_agent, path_map=route_to)
     return builder
