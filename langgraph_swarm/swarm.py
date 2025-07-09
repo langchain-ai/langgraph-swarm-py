@@ -21,7 +21,8 @@ StateSchemaType = type[StateSchema]
 
 
 def _update_state_schema_agent_names(
-    state_schema: StateSchemaType, agent_names: list[str],
+    state_schema: StateSchemaType,
+    agent_names: list[str],
 ) -> StateSchemaType:
     """Update the state schema to use Literal with agent names for 'active_agent'."""
     active_agent_annotation = state_schema.__annotations__["active_agent"]

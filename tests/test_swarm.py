@@ -1,4 +1,3 @@
-
 from langchain_core.callbacks.manager import CallbackManagerForLLMRun
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage
@@ -98,7 +97,8 @@ def test_basic_swarm() -> None:
         model,
         [
             create_handoff_tool(
-                agent_name="Alice", description="Transfer to Alice, she can help with math",
+                agent_name="Alice",
+                description="Transfer to Alice, she can help with math",
             ),
         ],
         prompt="You are Bob, you speak like a pirate.",

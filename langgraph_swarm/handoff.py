@@ -17,7 +17,10 @@ def _normalize_agent_name(agent_name: str) -> str:
 
 
 def create_handoff_tool(
-    *, agent_name: str, name: str | None = None, description: str | None = None,
+    *,
+    agent_name: str,
+    name: str | None = None,
+    description: str | None = None,
 ) -> BaseTool:
     """Create a tool that can handoff control to the requested agent.
 
