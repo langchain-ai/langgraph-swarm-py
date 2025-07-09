@@ -1,5 +1,3 @@
-from typing import Optional
-
 from langchain_core.callbacks.manager import CallbackManagerForLLMRun
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage
@@ -21,8 +19,8 @@ class FakeChatModel(BaseChatModel):
     def _generate(
         self,
         messages: list[BaseMessage],
-        stop: Optional[list[str]] = None,
-        run_manager: Optional[CallbackManagerForLLMRun] = None,
+        stop: list[str] | None = None,
+        run_manager: CallbackManagerForLLMRun | None = None,
         **kwargs,
     ) -> ChatResult:
         generation = ChatGeneration(message=self.responses[self.idx])
@@ -44,7 +42,7 @@ def test_basic_swarm() -> None:
                     "name": "transfer_to_bob",
                     "args": {},
                     "id": "call_1LlFyjm6iIhDjdn7juWuPYr4",
-                }
+                },
             ],
         ),
         AIMessage(
@@ -59,7 +57,7 @@ def test_basic_swarm() -> None:
                     "name": "transfer_to_alice",
                     "args": {},
                     "id": "call_T6pNmo2jTfZEK3a9avQ14f8Q",
-                }
+                },
             ],
         ),
         AIMessage(
@@ -73,7 +71,7 @@ def test_basic_swarm() -> None:
                         "b": 7,
                     },
                     "id": "call_4kLYO1amR2NfhAxfECkALCr1",
-                }
+                },
             ],
         ),
         AIMessage(
@@ -85,7 +83,7 @@ def test_basic_swarm() -> None:
     model = FakeChatModel(responses=recorded_messages)
 
     def add(a: int, b: int) -> int:
-        """Add two numbers"""
+        """Add two numbers."""
         return a + b
 
     alice = create_react_agent(
@@ -99,8 +97,9 @@ def test_basic_swarm() -> None:
         model,
         [
             create_handoff_tool(
-                agent_name="Alice", description="Transfer to Alice, she can help with math"
-            )
+                agent_name="Alice",
+                description="Transfer to Alice, she can help with math",
+            ),
         ],
         prompt="You are Bob, you speak like a pirate.",
         name="Bob",

@@ -6,7 +6,6 @@ httpx_client = httpx.Client(follow_redirects=False, timeout=10)
 
 def print_stream(stream):
     for ns, update in stream:
-        print(f"Namespace '{ns}'")
         for node, node_updates in update.items():
             if node_updates is None:
                 continue
@@ -19,9 +18,7 @@ def print_stream(stream):
                 raise ValueError(node_updates)
 
             for node_updates in node_updates_list:
-                print(f"Update from node '{node}'")
                 if isinstance(node_updates, tuple):
-                    print(node_updates)
                     continue
                 messages_key = next(
                     (k for k in node_updates.keys() if "messages" in k), None
@@ -29,11 +26,9 @@ def print_stream(stream):
                 if messages_key is not None:
                     node_updates[messages_key][-1].pretty_print()
                 else:
-                    print(node_updates)
+                    pass
 
-        print("\n\n")
 
-    print("\n===\n")
 
 
 def fetch_doc(url: str) -> str:
