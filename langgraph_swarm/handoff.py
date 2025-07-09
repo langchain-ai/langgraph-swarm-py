@@ -1,11 +1,11 @@
 import re
+from typing import Annotated
 
 from langchain_core.messages import ToolMessage
 from langchain_core.tools import BaseTool, InjectedToolCallId, tool
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.prebuilt import InjectedState, ToolNode
 from langgraph.types import Command
-from typing_extensions import Annotated
 
 WHITESPACE_RE = re.compile(r"\s+")
 METADATA_KEY_HANDOFF_DESTINATION = "__handoff_destination"
@@ -17,7 +17,7 @@ def _normalize_agent_name(agent_name: str) -> str:
 
 
 def create_handoff_tool(
-    *, agent_name: str, name: str | None = None, description: str | None = None
+    *, agent_name: str, name: str | None = None, description: str | None = None,
 ) -> BaseTool:
     """Create a tool that can handoff control to the requested agent.
 
@@ -32,6 +32,7 @@ def create_handoff_tool(
             If not provided, the tool name will be `transfer_to_<agent_name>`.
         description: Optional description for the handoff tool.
             If not provided, the tool description will be `Ask agent <agent_name> for help`.
+
     """
     if name is None:
         name = f"transfer_to_{_normalize_agent_name(agent_name)}"
