@@ -47,7 +47,7 @@ def create_handoff_tool(
     def handoff_to_agent(
         state: Annotated[dict, InjectedState],
         tool_call_id: Annotated[str, InjectedToolCallId],
-    ):
+    ) -> Command:
         tool_message = ToolMessage(
             content=f"Successfully transferred to {agent_name}",
             name=name,
@@ -56,14 +56,19 @@ def create_handoff_tool(
         return Command(
             goto=agent_name,
             graph=Command.PARENT,
-            update={"messages": state["messages"] + [tool_message], "active_agent": agent_name},
+            update={
+                "messages": state["messages"] + [tool_message],
+                "active_agent": agent_name,
+            },
         )
 
     handoff_to_agent.metadata = {METADATA_KEY_HANDOFF_DESTINATION: agent_name}
     return handoff_to_agent
 
 
-def get_handoff_destinations(agent: CompiledStateGraph, tool_node_name: str = "tools") -> list[str]:
+def get_handoff_destinations(
+    agent: CompiledStateGraph, tool_node_name: str = "tools"
+) -> list[str]:
     """Get a list of destinations from agent's handoff tools."""
     nodes = agent.get_graph().nodes
     if tool_node_name not in nodes:
@@ -77,5 +82,6 @@ def get_handoff_destinations(agent: CompiledStateGraph, tool_node_name: str = "t
     return [
         tool.metadata[METADATA_KEY_HANDOFF_DESTINATION]
         for tool in tools
-        if tool.metadata is not None and METADATA_KEY_HANDOFF_DESTINATION in tool.metadata
+        if tool.metadata is not None
+        and METADATA_KEY_HANDOFF_DESTINATION in tool.metadata
     ]
