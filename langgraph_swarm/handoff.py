@@ -1,11 +1,35 @@
 import re
-from typing import Annotated
+from dataclasses import is_dataclass
+from typing import Annotated, Any
 
 from langchain_core.messages import ToolMessage
 from langchain_core.tools import BaseTool, InjectedToolCallId, tool
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.prebuilt import InjectedState, ToolNode
 from langgraph.types import Command
+from pydantic import BaseModel
+
+
+def _get_field(obj: Any, key: str) -> Any:
+    """Get a field from an object.
+
+    This function retrieves a field from a dictionary, dataclass, or Pydantic model.
+
+    Args:
+        obj: The object from which to retrieve the field.
+        key: The key or attribute name of the field to retrieve.
+
+    Returns:
+        The value of the specified field.
+
+    """
+    if isinstance(obj, dict):
+        return obj[key]
+    if is_dataclass(obj) or isinstance(obj, BaseModel):
+        return getattr(obj, key)
+    msg = f"Unsupported type for state: {type(obj)}"
+    raise TypeError(msg)
+
 
 WHITESPACE_RE = re.compile(r"\s+")
 METADATA_KEY_HANDOFF_DESTINATION = "__handoff_destination"
@@ -45,7 +69,10 @@ def create_handoff_tool(
 
     @tool(name, description=description)
     def handoff_to_agent(
-        state: Annotated[dict, InjectedState],
+        # Annotation is typed as Any instead of StateLike. StateLike
+        # trigger validation issues from Pydantic / langchain_core interaction.
+        # https://github.com/langchain-ai/langchain/issues/32067
+        state: Annotated[Any, InjectedState],
         tool_call_id: Annotated[str, InjectedToolCallId],
     ) -> Command:
         tool_message = ToolMessage(
@@ -57,7 +84,7 @@ def create_handoff_tool(
             goto=agent_name,
             graph=Command.PARENT,
             update={
-                "messages": state["messages"] + [tool_message],
+                "messages": [*_get_field(state, "messages"), tool_message],
                 "active_agent": agent_name,
             },
         )
