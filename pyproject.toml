@@ -4,7 +4,7 @@ build-backend = "pdm.backend"
 
 [project]
 name = "langgraph-swarm"
-version = "0.0.12"
+version = "0.0.13"
 description = "An implementation of a multi-agent swarm using LangGraph"
 authors = [
     {name = "Vadym Barda", email = "19161700+vbarda@users.noreply.github.com "}
