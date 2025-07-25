@@ -84,3 +84,5 @@ check_untyped_defs = true
     "D415", # First line should end with a period, question mark, or exclamation point
 ]
 
+[tool.uv]
+prerelease = "allow"
