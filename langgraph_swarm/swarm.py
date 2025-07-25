@@ -1,4 +1,5 @@
 from typing import Literal, Optional, Union, cast, get_args, get_origin
+from warnings import warn
 
 from langgraph.graph import START, MessagesState, StateGraph
 from langgraph.pregel import Pregel
@@ -148,7 +149,8 @@ def create_swarm(
     *,
     default_active_agent: str,
     state_schema: StateSchemaType = SwarmState,
-    config_schema: type[Any] | None = None,
+    context_schema: type[Any] | None = None,
+    **deprecated_kwargs: Any,
 ) -> StateGraph:
     """Create a multi-agent swarm.
 
@@ -159,7 +161,7 @@ def create_swarm(
             or any other [Pregel](https://langchain-ai.github.io/langgraph/reference/pregel/#langgraph.pregel.Pregel) object.
         default_active_agent: Name of the agent to route to by default (if no agents are currently active).
         state_schema: State schema to use for the multi-agent graph.
-        config_schema: An optional schema for configuration.
+        context_schema: An optional schema for context configuration.
             Use this to expose configurable parameters via `swarm.config_specs`.
 
     Returns:
@@ -208,6 +210,14 @@ def create_swarm(
         ```
 
     """
+    if (config_schema := deprecated_kwargs.get("config_schema", None)) is not None:
+        warn(
+            "`config_schema` is deprecated. Please use `context_schema` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        context_schema = config_schema
+
     active_agent_annotation = state_schema.__annotations__.get("active_agent")
     if active_agent_annotation is None:
         msg = "Missing required key 'active_agent' in state_schema"
@@ -215,7 +225,7 @@ def create_swarm(
 
     agent_names = [agent.name for agent in agents]
     state_schema = _update_state_schema_agent_names(state_schema, agent_names)
-    builder = StateGraph(state_schema, config_schema)
+    builder = StateGraph(state_schema, context_schema)
     add_active_agent_router(
         builder,
         route_to=agent_names,
