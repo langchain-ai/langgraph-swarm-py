@@ -14,7 +14,6 @@ license-files = ["LICENSE"]
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    # pinned for testing purposes, will bound to 0.6.0 for merge
     "langgraph>=0.6.0,<0.7.0",
     "langchain-core>=0.3.40,<0.4.0"
 ]
