@@ -40,3 +40,4 @@ dmypy.json
 
 .langgraph_api
 .idea
+.DS_Store
