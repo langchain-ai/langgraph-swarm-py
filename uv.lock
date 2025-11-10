@@ -326,7 +326,7 @@ wheels = [
 
 [[package]]
 name = "langgraph-swarm"
-version = "0.0.14"
+version = "0.0.15"
 source = { editable = "." }
 dependencies = [
     { name = "langchain-core" },
@@ -345,7 +345,7 @@ test = [
 [package.metadata]
 requires-dist = [
     { name = "langchain-core", specifier = ">=0.3.40,<0.4.0" },
-    { name = "langgraph", specifier = ">=0.6.0,<0.7.0" },
+    { name = "langgraph", specifier = ">=0.6.0,<2" },
 ]
 
 [package.metadata.requires-dev]

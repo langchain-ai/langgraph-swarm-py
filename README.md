@@ -1,8 +1,11 @@
-# 🤖 LangGraph Multi-Agent Swarm 
+# 🤖 LangGraph Multi-Agent Swarm
 
 A Python library for creating swarm-style multi-agent systems using [LangGraph](https://github.com/langchain-ai/langgraph). A swarm is a type of [multi-agent](https://langchain-ai.github.io/langgraph/concepts/multi_agent) architecture where agents dynamically hand off control to one another based on their specializations. The system remembers which agent was last active, ensuring that on subsequent interactions, the conversation resumes with that agent.
 
 ![Swarm](static/img/swarm.png)
+
+> [!NOTE]
+> This library has been updated to support LangChain 1.0. However, it has **not** been tested with the new agents in `langchain.agents`. The library currently only supports the prebuilt `langgraph.prebuilt.create_react_agent`. This update allows users to migrate to LangChain 1.0 without changing their existing code. For users of the swarm package, we recommend continuing to use `langgraph.prebuilt.create_react_agent` rather than the new `langchain.agents` for now.
 
 ## Features
 
