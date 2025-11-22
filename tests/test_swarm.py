@@ -1,14 +1,14 @@
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any
 
+from langchain.agents import AgentState, create_agent
+from langchain.chat_models import BaseChatModel
+from langchain.messages import AIMessage
+from langchain.tools import BaseTool
 from langchain_core.callbacks.manager import CallbackManagerForLLMRun
-from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.messages import AIMessage, BaseMessage
+from langchain_core.messages.base import BaseMessage
 from langchain_core.outputs import ChatGeneration, ChatResult
-from langchain_core.tools import BaseTool
 from langgraph.checkpoint.memory import MemorySaver
-from langgraph.prebuilt import create_react_agent
-from langgraph.prebuilt.chat_agent_executor import AgentStatePydantic
 
 from langgraph_swarm import create_handoff_tool, create_swarm
 
@@ -100,27 +100,27 @@ def test_basic_swarm() -> None:
         """Add two numbers."""
         return a + b
 
-    alice = create_react_agent(
+    alice: Any = create_agent(
         model,
-        [add, create_handoff_tool(agent_name="Bob")],
-        prompt="You are Alice, an addition expert.",
+        tools=[add, create_handoff_tool(agent_name="Bob")],
+        system_prompt="You are Alice, an addition expert.",
         name="Alice",
     )
 
-    bob = create_react_agent(
+    bob: Any = create_agent(
         model,
-        [
+        tools=[
             create_handoff_tool(
                 agent_name="Alice",
                 description="Transfer to Alice, she can help with math",
             ),
         ],
-        prompt="You are Bob, you speak like a pirate.",
+        system_prompt="You are Bob, you speak like a pirate.",
         name="Bob",
     )
 
     checkpointer = MemorySaver()
-    workflow = create_swarm([alice, bob], default_active_agent="Alice")
+    workflow = create_swarm([alice, bob], default_active_agent="Alice")  # type: ignore[list-item]
     app = workflow.compile(checkpointer=checkpointer)
 
     config: RunnableConfig = {"configurable": {"thread_id": "1"}}
@@ -155,7 +155,7 @@ def test_basic_swarm() -> None:
 def test_basic_swarm_pydantic() -> None:
     """Test a basic swarm with Pydantic state schema."""
 
-    class SwarmState(AgentStatePydantic):
+    class SwarmState(AgentState):
         """State schema for the multi-agent swarm."""
 
         # NOTE: this state field is optional and is not expected to be provided by the
@@ -164,7 +164,7 @@ def test_basic_swarm_pydantic() -> None:
         # agent.
         # If active agent is typed as a `str`, we turn it into enum of all active agent
         # names.
-        active_agent: str | None = None
+        active_agent: str | None = None  # type: ignore[misc]
 
     recorded_messages = [
         AIMessage(
@@ -220,29 +220,29 @@ def test_basic_swarm_pydantic() -> None:
         """Add two numbers."""
         return a + b
 
-    alice = create_react_agent(
+    alice = create_agent(
         model,
-        [add, create_handoff_tool(agent_name="Bob")],
-        prompt="You are Alice, an addition expert.",
+        tools=[add, create_handoff_tool(agent_name="Bob")],
+        system_prompt="You are Alice, an addition expert.",
         name="Alice",
         state_schema=SwarmState,
     )
 
-    bob = create_react_agent(
+    bob = create_agent(
         model,
-        [
+        tools=[
             create_handoff_tool(
                 agent_name="Alice",
                 description="Transfer to Alice, she can help with math",
             ),
         ],
-        prompt="You are Bob, you speak like a pirate.",
+        system_prompt="You are Bob, you speak like a pirate.",
         name="Bob",
         state_schema=SwarmState,
     )
 
     checkpointer = MemorySaver()
-    workflow = create_swarm([alice, bob], default_active_agent="Alice")
+    workflow = create_swarm([alice, bob], default_active_agent="Alice")  # type: ignore[list-item]
     app = workflow.compile(checkpointer=checkpointer)
 
     config: RunnableConfig = {"configurable": {"thread_id": "1"}}

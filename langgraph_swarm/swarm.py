@@ -1,4 +1,5 @@
-from typing import Literal, Optional, Union, cast, get_args, get_origin
+from types import UnionType
+from typing import Literal, Union, cast, get_args, get_origin
 from warnings import warn
 
 from langgraph._internal._typing import DeprecatedKwargs
@@ -27,13 +28,23 @@ def _update_state_schema_agent_names(
     agent_names: list[str],
 ) -> StateSchemaType:
     """Update the state schema to use Literal with agent names for 'active_agent'."""
-    active_agent_annotation = state_schema.__annotations__["active_agent"]
+    active_agent_annotation = state_schema.__annotations__.get("active_agent")
+    if active_agent_annotation is None:
+        msg = "Missing required key 'active_agent' in state_schema"
+        raise ValueError(msg)
 
     # Check if the annotation is str or Optional[str]
     is_str_type = active_agent_annotation is str
     is_optional_str = (
         get_origin(active_agent_annotation) is Union
-        and get_args(active_agent_annotation)[0] is str
+        and len(get_args(active_agent_annotation)) == 2
+        and str in get_args(active_agent_annotation)
+        and type(None) in get_args(active_agent_annotation)
+    ) or (
+        get_origin(active_agent_annotation) is UnionType
+        and len(get_args(active_agent_annotation)) == 2
+        and str in get_args(active_agent_annotation)
+        and type(None) in get_args(active_agent_annotation)
     )
 
     # We only update if the 'active_agent' is a str or Optional[str]
@@ -47,11 +58,11 @@ def _update_state_schema_agent_names(
     )
 
     # Create the Literal type with agent names
-    literal_type = Literal.__getitem__(tuple(agent_names))
+    literal_type = cast("type", Literal.__getitem__(tuple(agent_names)))
 
     # If it was Optional[str], make it Optional[Literal[...]]
     if is_optional_str:
-        updated_schema.__annotations__["active_agent"] = Optional[literal_type]  # noqa: UP045
+        updated_schema.__annotations__["active_agent"] = literal_type | None
     else:
         updated_schema.__annotations__["active_agent"] = literal_type
 
@@ -76,8 +87,8 @@ def add_active_agent_router(
 
     Example:
         ```python
-        from langgraph.checkpoint.memory import InMemorySaver
-        from langgraph.prebuilt import create_react_agent
+        from langchain.checkpoint.memory import InMemorySaver
+        from langchain.agents import create_agent
         from langgraph.graph import StateGraph
         from langgraph_swarm import SwarmState, create_handoff_tool, add_active_agent_router
 
@@ -85,17 +96,28 @@ def add_active_agent_router(
             '''Add two numbers'''
             return a + b
 
-        alice = create_react_agent(
+        alice = create_agent(
             "openai:gpt-4o",
-            [add, create_handoff_tool(agent_name="Bob")],
-            prompt="You are Alice, an addition expert.",
+            tools=[
+                add,
+                create_handoff_tool(
+                    agent_name="Bob",
+                    description="Transfer to Bob",
+                ),
+            ],
+            system_prompt="You are Alice, an addition expert.",
             name="Alice",
         )
 
-        bob = create_react_agent(
+        bob = create_agent(
             "openai:gpt-4o",
-            [create_handoff_tool(agent_name="Alice", description="Transfer to Alice, she can help with math")],
-            prompt="You are Bob, you speak like a pirate.",
+            tools=[
+                create_handoff_tool(
+                    agent_name="Alice",
+                    description="Transfer to Alice, she can help with math",
+                ),
+            ],
+            system_prompt="You are Bob, you speak like a pirate.",
             name="Bob",
         )
 
@@ -170,24 +192,35 @@ def create_swarm(  # noqa: D417
     Example:
         ```python
         from langgraph.checkpoint.memory import InMemorySaver
-        from langgraph.prebuilt import create_react_agent
+        from langchain.agents import create_agent
         from langgraph_swarm import create_handoff_tool, create_swarm
 
         def add(a: int, b: int) -> int:
             '''Add two numbers'''
             return a + b
 
-        alice = create_react_agent(
+        alice = create_agent(
             "openai:gpt-4o",
-            [add, create_handoff_tool(agent_name="Bob")],
-            prompt="You are Alice, an addition expert.",
+            tools=[
+                add,
+                create_handoff_tool(
+                    agent_name="Bob",
+                    description="Transfer to Bob",
+                ),
+            ],
+            system_prompt="You are Alice, an addition expert.",
             name="Alice",
         )
 
-        bob = create_react_agent(
+        bob = create_agent(
             "openai:gpt-4o",
-            [create_handoff_tool(agent_name="Alice", description="Transfer to Alice, she can help with math")],
-            prompt="You are Bob, you speak like a pirate.",
+            tools=[
+                create_handoff_tool(
+                    agent_name="Alice",
+                    description="Transfer to Alice, she can help with math",
+                ),
+            ],
+            system_prompt="You are Bob, you speak like a pirate.",
             name="Bob",
         )
 
@@ -216,14 +249,23 @@ def create_swarm(  # noqa: D417
             DeprecationWarning,
             stacklevel=2,
         )
-        context_schema = config_schema  # type: ignore[assignment]
+        context_schema = cast("type[Any] | None", config_schema)
 
     active_agent_annotation = state_schema.__annotations__.get("active_agent")
     if active_agent_annotation is None:
         msg = "Missing required key 'active_agent' in state_schema"
         raise ValueError(msg)
 
+    if not agents:
+        msg = "agents list cannot be empty"
+        raise ValueError(msg)
+
     agent_names = [agent.name for agent in agents]
+
+    if default_active_agent not in agent_names:
+        msg = f"Default active agent '{default_active_agent}' not found in agent names {agent_names}"
+        raise ValueError(msg)
+
     state_schema = _update_state_schema_agent_names(state_schema, agent_names)
     builder = StateGraph(state_schema, context_schema)
     add_active_agent_router(
@@ -236,7 +278,7 @@ def create_swarm(  # noqa: D417
             agent.name,
             # We need to update the type signatures in add_node to match
             # the fact that more flexible Pregel objects are allowed.
-            agent,  # type: ignore[arg-type]
+            agent,
             destinations=tuple(
                 # Need to update implementation to support Pregel objects
                 get_handoff_destinations(agent)  # type: ignore[arg-type]

@@ -4,9 +4,6 @@ A Python library for creating swarm-style multi-agent systems using [LangGraph](
 
 ![Swarm](static/img/swarm.png)
 
-> [!NOTE]
-> This library has been updated to support LangChain 1.0. However, it has **not** been tested with the new agents in `langchain.agents`. The library currently only supports the prebuilt `langgraph.prebuilt.create_react_agent`. This update allows users to migrate to LangChain 1.0 without changing their existing code. For users of the swarm package, we recommend continuing to use `langgraph.prebuilt.create_react_agent` rather than the new `langchain.agents` for now.
-
 ## Features
 
 - 🤖 **Multi-agent collaboration** - Enable specialized agents to work together and hand off context to each other
@@ -32,7 +29,7 @@ export OPENAI_API_KEY=<your_api_key>
 from langchain_openai import ChatOpenAI
 
 from langgraph.checkpoint.memory import InMemorySaver
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 from langgraph_swarm import create_handoff_tool, create_swarm
 
 model = ChatOpenAI(model="gpt-4o")
@@ -41,17 +38,28 @@ def add(a: int, b: int) -> int:
     """Add two numbers"""
     return a + b
 
-alice = create_react_agent(
+alice = create_agent(
     model,
-    [add, create_handoff_tool(agent_name="Bob")],
-    prompt="You are Alice, an addition expert.",
+    tools=[
+        add,
+        create_handoff_tool(
+            agent_name="Bob",
+            description="Transfer to Bob",
+        ),
+    ],
+    system_prompt="You are Alice, an addition expert.",
     name="Alice",
 )
 
-bob = create_react_agent(
+bob = create_agent(
     model,
-    [create_handoff_tool(agent_name="Alice", description="Transfer to Alice, she can help with math")],
-    prompt="You are Bob, you speak like a pirate.",
+    tools=[
+        create_handoff_tool(
+            agent_name="Alice",
+            description="Transfer to Alice, she can help with math",
+        ),
+    ],
+    system_prompt="You are Bob, you speak like a pirate.",
     name="Bob",
 )
 
@@ -115,17 +123,17 @@ You can customize multi-agent swarm by changing either the [handoff tools](#cust
 
 By default, the agents in the swarm are assumed to use handoff tools created with the prebuilt `create_handoff_tool`. You can also create your own, custom handoff tools. Here are some ideas on how you can modify the default implementation:
 
-* change tool name and/or description
-* add tool call arguments for the LLM to populate, for example a task description for the next agent
-* change what data is passed to the next agent as part of the handoff: by default `create_handoff_tool` passes **full** message history (all of the messages generated in the swarm up to this point), as well as a tool message indicating successful handoff.
+- change tool name and/or description
+- add tool call arguments for the LLM to populate, for example a task description for the next agent
+- change what data is passed to the next agent as part of the handoff: by default `create_handoff_tool` passes **full** message history (all of the messages generated in the swarm up to this point), as well as a tool message indicating successful handoff.
 
 Here is an example of what a custom handoff tool might look like:
 
 ```python
 from typing import Annotated
 
-from langchain_core.tools import tool, BaseTool, InjectedToolCallId
-from langchain_core.messages import ToolMessage
+from langchain.tools import tool, BaseTool, InjectedToolCallId
+from langchain.messages import ToolMessage
 from langgraph.types import Command
 from langgraph.prebuilt import InjectedState
 
@@ -165,8 +173,8 @@ def create_custom_handoff_tool(*, agent_name: str, name: str | None, description
 
 > [!IMPORTANT]
 > If you are implementing custom handoff tools that return `Command`, you need to ensure that:  
-  (1) your agent has a tool-calling node that can handle tools returning `Command` (like LangGraph's prebuilt [`ToolNode`](https://langchain-ai.github.io/langgraph/reference/prebuilt/#langgraph.prebuilt.tool_node.ToolNode))  
-  (2) both the swarm graph and the next agent graph have the [state schema](https://langchain-ai.github.io/langgraph/concepts/low_level#schema) containing the keys you want to update in `Command.update`
+>  (1) your agent has a tool-calling node that can handle tools returning `Command` (like LangGraph's prebuilt [`ToolNode`](https://langchain-ai.github.io/langgraph/reference/prebuilt/#langgraph.prebuilt.tool_node.ToolNode))  
+>  (2) both the swarm graph and the next agent graph have the [state schema](https://langchain-ai.github.io/langgraph/concepts/low_level#schema) containing the keys you want to update in `Command.update`
 
 ### Customizing agent implementation
 
@@ -178,7 +186,7 @@ By default, individual agents are expected to communicate over a single `message
 ```python
 from typing_extensions import TypedDict, Annotated
 
-from langchain_core.messages import AnyMessage
+from langchain.messages import AnyMessage
 from langgraph.graph import StateGraph, add_messages
 from langgraph_swarm import SwarmState
 
@@ -228,4 +236,3 @@ workflow = add_active_agent_router(
 # compile the workflow
 app = workflow.compile()
 ```
-

@@ -2,9 +2,10 @@ import datetime
 from collections import defaultdict
 from typing import Callable
 
+from langchain.agents import create_agent
 from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
-from langgraph.prebuilt import create_react_agent
+
 from langgraph_swarm import create_handoff_tool, create_swarm
 
 model = ChatOpenAI(model="gpt-4o")
@@ -109,17 +110,17 @@ def make_prompt(base_system_prompt: str) -> Callable[[dict, RunnableConfig], lis
 
 
 # Define agents
-flight_assistant = create_react_agent(
+flight_assistant = create_agent(
     model,
-    [search_flights, book_flight, transfer_to_hotel_assistant],
-    prompt=make_prompt("You are a flight booking assistant"),
+    tools=[search_flights, book_flight, transfer_to_hotel_assistant],
+    system_prompt=make_prompt("You are a flight booking assistant"),
     name="flight_assistant",
 )
 
-hotel_assistant = create_react_agent(
+hotel_assistant = create_agent(
     model,
-    [search_hotels, book_hotel, transfer_to_flight_assistant],
-    prompt=make_prompt("You are a hotel booking assistant"),
+    tools=[search_hotels, book_hotel, transfer_to_flight_assistant],
+    system_prompt=make_prompt("You are a hotel booking assistant"),
     name="hotel_assistant",
 )
 

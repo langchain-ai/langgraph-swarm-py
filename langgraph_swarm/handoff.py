@@ -2,8 +2,8 @@ import re
 from dataclasses import is_dataclass
 from typing import Annotated, Any
 
-from langchain_core.messages import ToolMessage
-from langchain_core.tools import BaseTool, InjectedToolCallId, tool
+from langchain.messages import ToolMessage
+from langchain.tools import BaseTool, InjectedToolCallId, tool
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.prebuilt import InjectedState, ToolNode
 from langgraph.types import Command

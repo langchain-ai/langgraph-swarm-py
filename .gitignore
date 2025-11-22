@@ -28,15 +28,20 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+.pdm-build
 
 # Environments
 .venv
 .env
+.vscode
 
 # mypy
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# Pytest
+.pytest_cache
 
 .langgraph_api
 .idea

@@ -1,10 +1,9 @@
+from langchain.agents import create_agent
 from langchain.chat_models import init_chat_model
-from langgraph.prebuilt import create_react_agent
-from langgraph_swarm import create_handoff_tool, create_swarm
+from prompts import planner_prompt, researcher_prompt
+from utils import fetch_doc
 
-# from swarm_researcher.configuration import Configuration
-from swarm_researcher.prompts import planner_prompt, researcher_prompt
-from swarm_researcher.utils import fetch_doc
+from langgraph_swarm import create_handoff_tool, create_swarm
 
 # LLM
 model = init_chat_model(model="gpt-4o", model_provider="openai")
@@ -20,22 +19,22 @@ transfer_to_researcher_agent = create_handoff_tool(
 )
 
 # LLMS.txt
-llms_txt = "LangGraph:https://langchain-ai.github.io/langgraph/llms.txt"
-num_urls = 3
-planner_prompt_formatted = planner_prompt.format(llms_txt=llms_txt, num_urls=num_urls)
+LLMS_TXT = "LangGraph:https://langchain-ai.github.io/langgraph/llms.txt"
+NUM_URLS = 3
+PLANNER_PROMPT_FORMATTED = planner_prompt.format(llms_txt=LLMS_TXT, num_urls=NUM_URLS)
 
 # Planner agent
-planner_agent = create_react_agent(
+planner_agent = create_agent(
     model,
-    prompt=planner_prompt_formatted,
+    system_prompt=PLANNER_PROMPT_FORMATTED,
     tools=[fetch_doc, transfer_to_researcher_agent],
     name="planner_agent",
 )
 
 # Researcher agent
-researcher_agent = create_react_agent(
+researcher_agent = create_agent(
     model,
-    prompt=researcher_prompt,
+    system_prompt=researcher_prompt,
     tools=[fetch_doc, transfer_to_planner_agent],
     name="researcher_agent",
 )
