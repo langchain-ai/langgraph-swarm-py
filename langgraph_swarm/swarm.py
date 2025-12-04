@@ -27,7 +27,7 @@ def _update_state_schema_agent_names(
     state_schema: StateSchemaType,
     agent_names: list[str],
 ) -> StateSchemaType:
-    """Update the state schema to use Literal with agent names for 'active_agent'."""
+    """Update the state schema to use `Literal` with agent names for 'active_agent'."""
     active_agent_annotation = state_schema.__annotations__.get("active_agent")
     if active_agent_annotation is None:
         msg = "Missing required key 'active_agent' in state_schema"
@@ -75,15 +75,15 @@ def add_active_agent_router(
     route_to: list[str],
     default_active_agent: str,
 ) -> StateGraph:
-    """Add a router to the currently active agent to the StateGraph.
+    """Add a router to the currently active agent to the `StateGraph`.
 
     Args:
-        builder: The graph builder (StateGraph) to add the router to.
+        builder: The graph builder (`StateGraph`) to add the router to.
         route_to: A list of agent (node) names to route to.
         default_active_agent: Name of the agent to route to by default (if no agents are currently active).
 
     Returns:
-        StateGraph with the router added.
+        `StateGraph` with the router added.
 
     Example:
         ```python
@@ -179,15 +179,16 @@ def create_swarm(  # noqa: D417
 
     Args:
         agents: List of agents to add to the swarm
-            An agent can be a LangGraph [CompiledStateGraph](https://langchain-ai.github.io/langgraph/reference/graphs/#langgraph.graph.state.CompiledStateGraph),
-            a functional API [workflow](https://langchain-ai.github.io/langgraph/reference/func/#langgraph.func.entrypoint),
-            or any other [Pregel](https://langchain-ai.github.io/langgraph/reference/pregel/#langgraph.pregel.Pregel) object.
+
+            An agent can be a LangGraph [`CompiledStateGraph`][langgraph.graph.state.CompiledStateGraph],
+            a functional API [workflow][langgraph.func.entrypoint],
+            or any other [Pregel][langgraph.pregel.Pregel] object.
         default_active_agent: Name of the agent to route to by default (if no agents are currently active).
         state_schema: State schema to use for the multi-agent graph.
         context_schema: Specifies the schema for the context object that will be passed to the workflow.
 
     Returns:
-        A multi-agent swarm StateGraph.
+        A multi-agent swarm `StateGraph`.
 
     Example:
         ```python

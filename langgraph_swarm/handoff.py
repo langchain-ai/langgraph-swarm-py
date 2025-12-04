@@ -51,13 +51,16 @@ def create_handoff_tool(
     Args:
         agent_name: The name of the agent to handoff control to, i.e.
             the name of the agent node in the multi-agent graph.
-            Agent names should be simple, clear and unique, preferably in snake_case,
+
+            Agent names should be simple, clear and unique, preferably in `snake_case`,
             although you are only limited to the names accepted by LangGraph
             nodes as well as the tool names accepted by LLM providers
             (the tool name will look like this: `transfer_to_<agent_name>`).
         name: Optional name of the tool to use for the handoff.
+
             If not provided, the tool name will be `transfer_to_<agent_name>`.
         description: Optional description for the handoff tool.
+
             If not provided, the tool description will be `Ask agent <agent_name> for help`.
 
     """
