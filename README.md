@@ -45,6 +45,7 @@ alice = create_agent(
         create_handoff_tool(
             agent_name="Bob",
             description="Transfer to Bob",
+            context="full",  # Passes the entire context (e.g., messages, tool calls, etc.).
         ),
     ],
     system_prompt="You are Alice, an addition expert.",
@@ -57,6 +58,7 @@ bob = create_agent(
         create_handoff_tool(
             agent_name="Alice",
             description="Transfer to Alice, she can help with math",
+            context="last",  # Passes only the most recent message, typically the agent’s answer
         ),
     ],
     system_prompt="You are Bob, you speak like a pirate.",
