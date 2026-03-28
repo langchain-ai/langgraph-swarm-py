@@ -46,6 +46,18 @@ class FakeChatModel(BaseChatModel):
         return self
 
 
+def test_handoff_tool_default_name_sanitizes_special_characters() -> None:
+    handoff_tool = create_handoff_tool(agent_name="R&D Agent / v2")
+
+    assert handoff_tool.name == "transfer_to_r_d_agent_v2"
+
+
+def test_handoff_tool_default_name_falls_back_when_empty_after_sanitize() -> None:
+    handoff_tool = create_handoff_tool(agent_name="!!!")
+
+    assert handoff_tool.name == "transfer_to_agent"
+
+
 def test_basic_swarm() -> None:
     # Create fake responses for the model
     recorded_messages = [
