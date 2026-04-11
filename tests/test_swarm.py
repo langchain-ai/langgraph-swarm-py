@@ -1,6 +1,7 @@
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any
 
+import pytest
 from langchain.agents import AgentState, create_agent
 from langchain.chat_models import BaseChatModel
 from langchain.messages import AIMessage
@@ -43,6 +44,18 @@ class FakeChatModel(BaseChatModel):
         **kwargs: Any,
     ) -> "FakeChatModel":
         return self
+
+
+def test_handoff_tool_default_name_sanitizes_special_characters() -> None:
+    handoff_tool = create_handoff_tool(agent_name="R&D Agent / v2")
+
+    assert handoff_tool.name == "transfer_to_r_d_agent_v2"
+
+
+def test_handoff_tool_default_name_falls_back_when_empty_after_sanitize() -> None:
+    handoff_tool = create_handoff_tool(agent_name="!!!")
+
+    assert handoff_tool.name == "transfer_to_agent"
 
 
 def test_basic_swarm() -> None:
@@ -150,6 +163,63 @@ def test_basic_swarm() -> None:
     assert turn_2["messages"][-2].content == "12"
     assert turn_2["messages"][-1].content == recorded_messages[4].content
     assert turn_2["active_agent"] == "Alice"
+
+
+def test_swarm_falls_back_on_unknown_active_agent() -> None:
+    recorded_messages = [
+        AIMessage(
+            content="",
+            name="Alice",
+            tool_calls=[
+                {
+                    "name": "transfer_to_bob",
+                    "args": {},
+                    "id": "call_1LlFyjm6iIhDjdn7juWuPYr4",
+                },
+            ],
+        ),
+        AIMessage(
+            content="Ahoy, matey! Bob the pirate be at yer service.",
+            name="Bob",
+        ),
+    ]
+
+    model = FakeChatModel(responses=recorded_messages)  # type: ignore[arg-type]
+
+    def add(a: int, b: int) -> int:
+        """Add two numbers."""
+        return a + b
+
+    alice: Any = create_agent(
+        model,
+        tools=[add, create_handoff_tool(agent_name="Bob")],
+        system_prompt="You are Alice, an addition expert.",
+        name="Alice",
+    )
+
+    bob: Any = create_agent(
+        model,
+        tools=[create_handoff_tool(agent_name="Alice")],
+        system_prompt="You are Bob, you speak like a pirate.",
+        name="Bob",
+    )
+
+    checkpointer = MemorySaver()
+    workflow = create_swarm([alice, bob], default_active_agent="Alice")  # type: ignore[list-item]
+    app = workflow.compile(checkpointer=checkpointer)
+
+    config: RunnableConfig = {"configurable": {"thread_id": "fallback-1"}}
+    with pytest.warns(RuntimeWarning, match="Active agent 'Charlie'"):
+        turn_1 = app.invoke(
+            {  # type: ignore[arg-type]
+                "messages": [{"role": "user", "content": "i'd like to speak to Bob"}],
+                "active_agent": "Charlie",
+            },
+            config,
+        )
+
+    assert turn_1["active_agent"] == "Bob"
+    assert turn_1["messages"][-2].content == "Successfully transferred to Bob"
 
 
 def test_basic_swarm_pydantic() -> None:
