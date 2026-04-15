@@ -161,7 +161,18 @@ def add_active_agent_router(
         )
 
     def route_to_active_agent(state: dict) -> str:
-        return cast("str", state.get("active_agent", default_active_agent))
+        active_agent = state.get("active_agent", default_active_agent)
+        if not active_agent:
+            return default_active_agent
+        if active_agent not in route_to:
+            warn(
+                f"Active agent '{active_agent}' not found in routes {route_to}. "
+                f"Falling back to '{default_active_agent}'.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+            return default_active_agent
+        return cast("str", active_agent)
 
     builder.add_conditional_edges(START, route_to_active_agent, path_map=route_to)
     return builder
