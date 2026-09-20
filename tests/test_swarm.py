@@ -124,10 +124,8 @@ def test_basic_swarm() -> None:
     app = workflow.compile(checkpointer=checkpointer)
 
     config: RunnableConfig = {"configurable": {"thread_id": "1"}}
-    turn_1 = app.invoke(
-        {  # type: ignore[arg-type]
-            "messages": [{"role": "user", "content": "i'd like to speak to Bob"}]
-        },
+    turn_1 = app.invoke(  # type: ignore[call-overload]
+        {"messages": [{"role": "user", "content": "i'd like to speak to Bob"}]},
         config,
     )
 
@@ -137,10 +135,8 @@ def test_basic_swarm() -> None:
     assert turn_1["messages"][-1].content == recorded_messages[1].content
     assert turn_1["active_agent"] == "Bob"
 
-    turn_2 = app.invoke(
-        {  # type: ignore[arg-type]
-            "messages": [{"role": "user", "content": "what's 5 + 7?"}]
-        },
+    turn_2 = app.invoke(  # type: ignore[call-overload]
+        {"messages": [{"role": "user", "content": "what's 5 + 7?"}]},
         config,
     )
 
@@ -246,10 +242,8 @@ def test_basic_swarm_pydantic() -> None:
     app = workflow.compile(checkpointer=checkpointer)
 
     config: RunnableConfig = {"configurable": {"thread_id": "1"}}
-    turn_1 = app.invoke(
-        {  # type: ignore[arg-type]
-            "messages": [{"role": "user", "content": "i'd like to speak to Bob"}]
-        },
+    turn_1 = app.invoke(  # type: ignore[call-overload]
+        {"messages": [{"role": "user", "content": "i'd like to speak to Bob"}]},
         config,
     )
 
@@ -259,10 +253,8 @@ def test_basic_swarm_pydantic() -> None:
     assert turn_1["messages"][-1].content == recorded_messages[1].content
     assert turn_1["active_agent"] == "Bob"
 
-    turn_2 = app.invoke(
-        {  # type: ignore[arg-type]
-            "messages": [{"role": "user", "content": "what's 5 + 7?"}]
-        },
+    turn_2 = app.invoke(  # type: ignore[call-overload]
+        {"messages": [{"role": "user", "content": "what's 5 + 7?"}]},
         config,
     )
 
