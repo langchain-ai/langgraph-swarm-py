@@ -32,12 +32,17 @@ def _get_field(obj: Any, key: str) -> Any:
 
 
 WHITESPACE_RE = re.compile(r"\s+")
+NON_ALNUM_UNDERSCORE_RE = re.compile(r"[^a-z0-9_]+")
+MULTI_UNDERSCORE_RE = re.compile(r"_+")
 METADATA_KEY_HANDOFF_DESTINATION = "__handoff_destination"
 
 
 def _normalize_agent_name(agent_name: str) -> str:
     """Normalize an agent name to be used inside the tool name."""
-    return WHITESPACE_RE.sub("_", agent_name.strip()).lower()
+    normalized = WHITESPACE_RE.sub("_", agent_name.strip()).lower()
+    normalized = NON_ALNUM_UNDERSCORE_RE.sub("_", normalized)
+    normalized = MULTI_UNDERSCORE_RE.sub("_", normalized).strip("_")
+    return normalized or "agent"
 
 
 def create_handoff_tool(
