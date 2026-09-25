@@ -45,6 +45,7 @@ def create_handoff_tool(
     agent_name: str,
     name: str | None = None,
     description: str | None = None,
+    context: str = "full",
 ) -> BaseTool:
     """Create a tool that can handoff control to the requested agent.
 
@@ -62,6 +63,9 @@ def create_handoff_tool(
         description: Optional description for the handoff tool.
 
             If not provided, the tool description will be `Ask agent <agent_name> for help`.
+        context: Optional context to pass along to the next agent. Can be "full" or "last".
+            - "full": pass the entire conversation/context, (e.g., all messages, tool calls, etc.).
+            - "last": pass only the last message
 
     """
     if name is None:
@@ -78,6 +82,13 @@ def create_handoff_tool(
         state: Annotated[Any, InjectedState],
         tool_call_id: Annotated[str, InjectedToolCallId],
     ) -> Command:
+        if context == "full":
+            context_data = _get_field(state, "messages")
+        elif context == "last":
+            context_data = [_get_field(state, "messages")[-1]]
+        else:
+            raise ValueError(f"Invalid context value: {context}. Must be 'full' or 'last'.")
+
         tool_message = ToolMessage(
             content=f"Successfully transferred to {agent_name}",
             name=name,
@@ -87,7 +98,7 @@ def create_handoff_tool(
             goto=agent_name,
             graph=Command.PARENT,
             update={
-                "messages": [*_get_field(state, "messages"), tool_message],
+                "messages": [*context_data, tool_message],
                 "active_agent": agent_name,
             },
         )

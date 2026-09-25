@@ -102,7 +102,10 @@ def test_basic_swarm() -> None:
 
     alice: Any = create_agent(
         model,
-        tools=[add, create_handoff_tool(agent_name="Bob")],
+        tools=[add, create_handoff_tool(
+            agent_name="Bob",
+            context="full"
+        )],
         system_prompt="You are Alice, an addition expert.",
         name="Alice",
     )
@@ -113,6 +116,7 @@ def test_basic_swarm() -> None:
             create_handoff_tool(
                 agent_name="Alice",
                 description="Transfer to Alice, she can help with math",
+                context="full"
             ),
         ],
         system_prompt="You are Bob, you speak like a pirate.",
