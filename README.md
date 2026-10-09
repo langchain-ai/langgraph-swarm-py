@@ -86,6 +86,40 @@ print(turn_2)
 > [!TIP]
 > For developing, debugging, and deploying AI agents and LLM applications, see [LangSmith](https://docs.langchain.com/langsmith/home).
 
+## Streaming
+
+Each agent in a swarm runs as a LangGraph subgraph. To receive tokens from the
+agent's model as they are generated, set `subgraphs=True` when streaming the
+compiled swarm. Without it, `stream_mode="messages"` only exposes messages from
+the outer graph, which can look like a complete response arriving at once.
+
+Using `app` from the quickstart above:
+
+```python
+import asyncio
+
+from langchain_core.messages import AIMessageChunk
+
+
+async def stream_reply() -> None:
+    config = {"configurable": {"thread_id": "streaming-example"}}
+    async for namespace, (message, metadata) in app.astream(
+        {"messages": [{"role": "user", "content": "Say hello"}]},
+        config,
+        stream_mode="messages",
+        subgraphs=True,
+    ):
+        if namespace and isinstance(message, AIMessageChunk) and message.content:
+            print(message.content, end="", flush=True)
+
+
+asyncio.run(stream_reply())
+```
+
+The `namespace` identifies the agent subgraph that produced a chunk. See
+[LangGraph's subgraph streaming guide](https://docs.langchain.com/oss/python/langgraph/streaming#subgraph-outputs)
+for the full event format.
+
 ## Memory
 
 You can add [short-term](https://langchain-ai.github.io/langgraph/how-tos/persistence/) and [long-term](https://langchain-ai.github.io/langgraph/how-tos/cross-thread-persistence/) [memory](https://langchain-ai.github.io/langgraph/concepts/memory/) to your swarm multi-agent system. Since `create_swarm()` returns an instance of `StateGraph` that needs to be compiled before use, you can directly pass a [checkpointer](https://langchain-ai.github.io/langgraph/reference/checkpoints/#langgraph.checkpoint.base.BaseCheckpointSaver) or a [store](https://langchain-ai.github.io/langgraph/reference/store/#langgraph.store.base.BaseStore) instance to the `.compile()` method:
